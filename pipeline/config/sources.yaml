@@ -100,11 +100,13 @@ sources:
     license: "CC-BY-4.0"
     metric: DTV
   st:
-    status: research
-    kind: wfs             # Netz-WFS + Excel-Werte (Join)
-    url: "https://www.geodatenportal.sachsen-anhalt.de/"
+    status: live          # Netz-WFS (Geometrie, vnk/nnk) + DTV-Excel über Netzknoten gejoint
+    kind: wfs+xlsx
+    url: "https://www.geodatenportal.sachsen-anhalt.de/gfds/ws/wfs/a78d7bc1-ffbb-cf76/GDI-LSA_LSBB_STRASSENNETZE/ows.wfs"
+    values_url: "https://lsbb.sachsen-anhalt.de/fileadmin/Bibliothek/Politik_und_Verwaltung/Landesbetriebe/LSBB/Service/Strassenverkehrszaehlungen/Dateien_2025/Ergebnisse_SVZ_2021.xlsx"
+    # Adapter (st.py): 4 Netz-Klassen + Excel-Blatt Zeilenformat, Join (vnk,nnk)<->(VonNK,NachNK).
     year: 2021
-    license: "dl-de/by-2.0"
+    license: "dl-de/by-2.0"   # © Geofachdaten-DE / LSBB Sachsen-Anhalt
     metric: DTV
   mv:
     status: research
@@ -125,9 +127,12 @@ sources:
 
   # ====================== wms_only / blockiert (kein Vektor) ======================
   rp:
-    status: wms_only      # nur WMS-Bild; alter Vektor-WFS spatial-objects/393 liefert Fehler.
-    kind: wms
-    url: "https://lbm-geo.rlp.de/cgi-bin/mapserv?map=/home/planer/https-wms/bundesverkehrszaehlung_2021.map"
+    status: research      # OGC API Features (ldproxy) vorhanden, aber Backend aktuell defekt
+    kind: ogcapi
+    url: "https://www.geoportal.rlp.de/spatial-objects/393"
+    # Collections: DTV_WFS:SVZ{Jahr}_Zaehlstellenbereiche (Linien + DTV);
+    # Items …/393/collections/<id>/items?f=json&limit=1000. base.fetch_ogc_features passt.
+    # Stand Juni 2026: liefert serverseitig "Wfs object could not be created from db!" -> warten.
     year: 2021
     license: "dl-de/by-2.0"
     metric: DTV
