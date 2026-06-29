@@ -65,14 +65,19 @@ sources:
     license: "dl-de/by-2.0"   # ATOM <rights>: "Datenlizenz Deutschland Namensnennung 2.0"
     metric: DTV
 
-  # ====================== ready (Endpunkt verifiziert) ======================
+  # ====================== live: Punkt-Quellen (svz_points-Layer) ======================
+  bw:
+    status: live
+    kind: geojson         # direkte GeoJSON-Datei (PUNKTE), EPSG:4326
+    url: "https://mobidata-bw.de/karten_geojsons/maps/count_car/SVZ-Zaehlstellen_231011_augmented_SVZ2024.geojson"
+    year: 2024            # DTV2024/DTVSV/klasse/nummer/svznr (Adapter: bw.py)
+    license: "dl-de/by-2.0"
+    metric: DTV
   sl:
-    status: ready
-    kind: wfs             # ArcGIS-Server-WFS (mapbender-Proxy blockt GetFeature -> Backend-URL)
+    status: live
+    kind: wfs             # ArcGIS-Backend-WFS (PUNKTE); Mapbender-Proxy blockt GetFeature
     url: "https://geoportal.saarland.de/arcgis/services/Internet/Verkehr_WFS/MapServer/WFSServer"
-    typename: "Verkehr_WFS:SVZ_Zaehlstellen"
-    # ACHTUNG: PUNKT-Geometrie (Zählstellen-Standorte), nicht Linien! Felder: DTV/DTVSV/
-    # Str ("L 375")/TKZST. Braucht einen Punkt-Zweig in merge/tiles + Punkt-Layer im Frontend.
+    # typename + Felder im Adapter (adapters/sl.py): Verkehr_WFS:SVZ_Zaehlstellen.
     year: 2021            # lt. Übersicht; am Datensatz nicht eindeutig datiert
     license: "offen"      # Caps: "keine Zugriffsbeschränkungen / keine Bedingungen"
     metric: DTV
@@ -106,16 +111,6 @@ sources:
     year: 2015
     license: "dl-de/by-2.0"
     metric: DTV
-  bw:
-    status: research
-    kind: xlsxzip         # Excel (CKAN) + Geometrie-Join auf Zählstellen-Karte
-    url: "https://mobidata-bw.de/dataset/endergebnisse_strassenverkehrszaehlung"
-    stations_url: "https://mobidata-bw.de/dataset/karte_strassenverkehrszaehlung"
-    join: station_id
-    year: 2024
-    license: "dl-de/by-2.0"
-    metric: DTV
-
   # ====================== wms_only / blockiert (kein Vektor) ======================
   sn:
     status: wms_only      # ttsib-wms; ttsib-wfs existiert nicht (404). GDI-SBV-WFS evtl. separat.

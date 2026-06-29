@@ -80,3 +80,38 @@ def tippecanoe(
     ]
     _run(cmd, dry_run=dry_run)
     return output_path
+
+
+def tile_join(output_path: Path, inputs: list[Path], *, dry_run: bool = False) -> Path:
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    cmd = ["tile-join", "--force", "-o", str(output_path), *[str(p) for p in inputs]]
+    _run(cmd, dry_run=dry_run)
+    return output_path
+
+
+def build_svz(*, dry_run: bool = False) -> Path:
+    """svz_lines.fgb (-> Layer `svz`) + svz_points.fgb (-> Layer `svz_points`) tilen
+    und per tile-join zu data/svz/svz_de.pmtiles vereinen. Tilet nur, was existiert.
+    """
+    from svzkarte.config import get_paths
+
+    paths = get_paths()
+    out = paths.svz / "svz_de.pmtiles"
+    jobs = [
+        ("svz_lines", paths.svz / "svz_lines.fgb"),
+        ("svz_points", paths.svz / "svz_points.fgb"),
+    ]
+    parts: list[Path] = []
+    for profile, fgb in jobs:
+        if not fgb.exists() and not dry_run:
+            continue
+        part = out.with_name(f"_{profile}_tmp.pmtiles")
+        tippecanoe(profile, fgb, part, dry_run=dry_run)
+        parts.append(part)
+    if not parts:
+        raise FileNotFoundError(f"Keine svz_*.fgb in {paths.svz} — erst `svz merge`.")
+    result = tile_join(out, parts, dry_run=dry_run)
+    if not dry_run:
+        for part in parts:
+            part.unlink(missing_ok=True)
+    return result

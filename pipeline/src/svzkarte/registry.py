@@ -22,23 +22,23 @@ REGISTRY: dict[str, str] = {
     "bb": "svzkarte.adapters.bb",
     "hh": "svzkarte.adapters.hh",
     "nw": "svzkarte.adapters.nw",
+    "bw": "svzkarte.adapters.bw",   # Punkte
+    "sl": "svzkarte.adapters.sl",   # Punkte
 }
 
 # Recherchiert, aber noch offen (Zugangsart aus SVZ_Quellen_Bundeslaender.md).
 PLANNED: dict[str, str] = {
     "sn": "Sachsen — nur WMS (ttsib, kein WFS); GDI-SBV-WFS evtl. separat",
     "st": "Sachsen-Anhalt — Netz-WFS + Excel-Werte, dl-de/by-2.0",
-    "sl": "Saarland — WFS verifiziert (Verkehr_WFS:SVZ_Zaehlstellen) → ready, ABER Punkt-Geometrie (Punkt-Layer nötig)",
     "sh": "Schleswig-Holstein — WFS, CC-BY 4.0",
     "th": "Thüringen — WFS (Zählstellenbereiche), dl-de/by-2.0",
-    "bw": "Baden-Württemberg — Excel (CKAN) + Join Zählstellen-Geometrie, dl-de/by-2.0",
     "mv": "Mecklenburg-Vorpommern — WFS (SVZ 2015), dl-de/by-2.0 (prüfen)",
     "rp": "Rheinland-Pfalz — nur WMS (kein WFS/Vektor); Service 393 defekt → zurückgestellt",
     # Nur Viewer/PDF, vorerst zurückgestellt: HB (Bremen), HE (Hessen) -> A/B via BASt.
 }
 
 # Reihenfolge für `build all` (nur implementierte).
-ORDER: list[str] = ["be", "ni", "by", "bb", "hh", "nw"]
+ORDER: list[str] = ["be", "ni", "by", "bb", "hh", "nw", "bw", "sl"]
 
 
 def normalize_fn(code: str) -> Callable[[], GeoDataFrame]:

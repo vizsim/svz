@@ -16,14 +16,17 @@ from svzkarte.config import get_paths, load_yaml
 
 
 def _svz_max_year() -> str | None:
-    """Max. Bezugsjahr aus der gebauten svz_de.fgb (None, wenn nicht vorhanden)."""
-    fgb = get_paths().svz / "svz_de.fgb"
-    if not fgb.exists():
-        return None
+    """Max. Bezugsjahr über die gebauten svz_*.fgb (Linien + Punkte; None, wenn keine)."""
     import geopandas as gpd
 
-    gdf = gpd.read_file(fgb, columns=["year"])
-    return str(int(gdf["year"].max())) if len(gdf) else None
+    years: list[int] = []
+    for name in ("svz_lines.fgb", "svz_points.fgb"):
+        fgb = get_paths().svz / name
+        if fgb.exists():
+            gdf = gpd.read_file(fgb, columns=["year"])
+            if len(gdf):
+                years.append(int(gdf["year"].max()))
+    return str(max(years)) if years else None
 
 
 def _resolve_date(date_spec: Any) -> str | None:

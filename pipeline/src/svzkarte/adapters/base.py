@@ -69,6 +69,7 @@ def fetch_wfs(
     version: str = "2.0.0",
     output_format: str | None = "application/json",
     src_crs: int | None = None,
+    srs: str | None = None,
 ) -> GeoDataFrame:
     """GetFeature gegen einen WFS, gelesen via geopandas.
 
@@ -76,15 +77,23 @@ def fetch_wfs(
     Server `GEOJSON`, manche können nur GML -> `output_format=None` (Server-Default).
     `src_crs`: native CRS anfordern statt 4326 (vermeidet die GML-Achsenfalle bei
     4326) und auf dem Ergebnis setzen; `to_canonical` reprojiziert dann nach 4326.
+    `srs`: srsName-Override. Manche ArcGIS-WFS liefern bei `EPSG:4326` lat,lon
+    (Achsenordnung) -> `srs="CRS:84"` erzwingt lon,lat (z.B. Saarland).
     """
     import geopandas as gpd
 
+    if src_crs:
+        srs_name = f"EPSG:{src_crs}"
+    elif srs:
+        srs_name = srs
+    else:
+        srs_name = "EPSG:4326"
     params = {
         "service": "WFS",
         "version": version,
         "request": "GetFeature",
         "typeNames" if version >= "2.0.0" else "typeName": typename,
-        "srsName": f"EPSG:{src_crs}" if src_crs else "EPSG:4326",
+        "srsName": srs_name,
     }
     if output_format:
         params["outputFormat"] = output_format
@@ -129,6 +138,14 @@ def fetch_zip(url: str) -> GeoDataFrame:
     """
     data = requests.get(url, headers=_UA, timeout=_TIMEOUT).content
     return _read_zip_vector(data)
+
+
+def fetch_geojson(url: str) -> GeoDataFrame:
+    """Lädt eine direkte GeoJSON-Datei (z.B. BW-Zählstellen) als GeoDataFrame."""
+    import geopandas as gpd
+
+    data = requests.get(url, headers=_UA, timeout=_TIMEOUT).content
+    return gpd.read_file(io.BytesIO(data))
 
 
 def _read_zip_vector(data: bytes) -> GeoDataFrame:

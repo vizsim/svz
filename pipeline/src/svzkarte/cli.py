@@ -55,24 +55,22 @@ def build(
 
 @app.command()
 def merge() -> None:
-    """Alle data/interim/<land>.fgb -> data/svz/svz_de.fgb (+ validate)."""
+    """interim/<land>.fgb -> data/svz/svz_lines.fgb + svz_points.fgb (nach Geometrie, validiert)."""
     from svzkarte import merge as merge_mod
 
-    out, n = merge_mod.merge()
-    typer.secho(f"geschrieben: {out} ({n} Features)", fg=typer.colors.GREEN)
+    written = merge_mod.merge()
+    for kind, path in written.items():
+        typer.secho(f"geschrieben: {kind} -> {path}", fg=typer.colors.GREEN)
 
 
 @app.command()
 def tiles(
-    dry_run: bool = typer.Option(False, "--dry-run", help="Kommando nur zeigen"),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Kommandos nur zeigen"),
 ) -> None:
-    """data/svz/svz_de.fgb -> data/svz/svz_de.pmtiles (Profil `svz_lines`, Layer `svz`)."""
+    """svz_lines.fgb + svz_points.fgb -> data/svz/svz_de.pmtiles (Layer `svz` + `svz_points`)."""
     from svzkarte import tiles as tiles_mod
 
-    paths = get_paths()
-    fgb = paths.svz / "svz_de.fgb"
-    out = paths.svz / "svz_de.pmtiles"
-    res = tiles_mod.tippecanoe("svz_lines", fgb, out, dry_run=dry_run)
+    res = tiles_mod.build_svz(dry_run=dry_run)
     typer.secho(f"PMTiles: {res}", fg=typer.colors.GREEN)
 
 

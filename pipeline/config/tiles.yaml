@@ -15,3 +15,17 @@ profiles:
       dtv_kfz: int
       dtv_sv: int
       year: int
+
+  # Punkt-Zählstellen (BW/SL). Eigener Layer-Name = Frontend-Vertrag (Kreis-Layer).
+  svz_points:
+    layer: svz_points
+    minzoom: 6
+    maxzoom: 14
+    drop_rate: 0
+    drop_densest_as_needed: true
+    no_feature_limit: true
+    no_tile_size_limit: true
+    attribute_types:
+      dtv_kfz: int
+      dtv_sv: int
+      year: int

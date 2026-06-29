@@ -44,8 +44,10 @@ map.on("load", () => {
     attribution: "Verkehrsmengen: Straßenbauverwaltungen der Länder",
   });
 
-  // svz-Linien direkt unter die erste Symbol-(Label-)Ebene legen.
+  // Beide Daten-Layer direkt unter die erste Symbol-(Label-)Ebene legen.
   const firstSymbol = map.getStyle().layers.find((l) => l.type === "symbol")?.id;
+
+  // Linien-Länder (Zählstellenbereiche/Segmente).
   map.addLayer(
     {
       id: "svz-lines",
@@ -65,9 +67,30 @@ map.on("load", () => {
     firstSymbol,
   );
 
-  // Klick-Popup.
+  // Punkt-Länder (Zählstellen-Standorte, z.B. BW/SL) als Kreise.
+  map.addLayer(
+    {
+      id: "svz-points",
+      type: "circle",
+      source: "svz",
+      "source-layer": "svz_points",
+      paint: {
+        "circle-color": colorExpr,
+        "circle-opacity": 0.9,
+        "circle-stroke-color": "#ffffff",
+        "circle-stroke-width": 0.7,
+        "circle-radius": [
+          "interpolate", ["linear"], ["zoom"],
+          6, 2, 10, 4, 14, 7,
+        ],
+      },
+    },
+    firstSymbol,
+  );
+
+  // Klick-Popup + Cursor für beide Layer.
   const fmt = (n) => (n == null ? "–" : Number(n).toLocaleString("de-DE"));
-  map.on("click", "svz-lines", (e) => {
+  const onClick = (e) => {
     const p = e.features[0].properties;
     const road = p.road_no || `${p.road_class}-Straße`;
     const sv =
@@ -85,9 +108,12 @@ map.on("load", () => {
         `<div class="popup-meta">Klasse ${p.road_class} · ${p.year} · ${p.state}</div>`,
       )
       .addTo(map);
-  });
-  map.on("mouseenter", "svz-lines", () => (map.getCanvas().style.cursor = "pointer"));
-  map.on("mouseleave", "svz-lines", () => (map.getCanvas().style.cursor = ""));
+  };
+  for (const id of ["svz-lines", "svz-points"]) {
+    map.on("click", id, onClick);
+    map.on("mouseenter", id, () => (map.getCanvas().style.cursor = "pointer"));
+    map.on("mouseleave", id, () => (map.getCanvas().style.cursor = ""));
+  }
 });
 
 // Legende aus derselben Skala bauen.
