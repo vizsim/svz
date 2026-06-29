@@ -28,7 +28,7 @@ REGISTRY: dict[str, str] = {
 PLANNED: dict[str, str] = {
     "sn": "Sachsen — nur WMS (ttsib, kein WFS); GDI-SBV-WFS evtl. separat",
     "st": "Sachsen-Anhalt — Netz-WFS + Excel-Werte, dl-de/by-2.0",
-    "sl": "Saarland — WMS/WFS, offen (INSPIRE)",
+    "sl": "Saarland — WFS verifiziert (Verkehr_WFS:SVZ_Zaehlstellen) → ready, ABER Punkt-Geometrie (Punkt-Layer nötig)",
     "sh": "Schleswig-Holstein — WFS, CC-BY 4.0",
     "th": "Thüringen — WFS (Zählstellenbereiche), dl-de/by-2.0",
     "bw": "Baden-Württemberg — Excel (CKAN) + Join Zählstellen-Geometrie, dl-de/by-2.0",

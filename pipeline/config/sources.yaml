@@ -1,12 +1,11 @@
 # Quellen-Metadata (von Hand gepflegt). Speist data/manifest.json + Attribution
-# und liefert den Adaptern die Zugangs-Parameter (kind/url/typename/...).
-# Basis: SVZ_Quellen_Bundeslaender.md; Endpunkte live verifiziert (Stand Juni 2026).
+# und liefert den Adaptern die Zugangs-Parameter (kind/url/...).
 #
 # datasets: das ausgespielte PMTiles-Artefakt (date: auto -> max year über merge).
-# sources:  je Land die Zugangs-Metadaten. `status` macht den Reifegrad explizit:
-#   live      -> Adapter implementiert + Build läuft gegen diesen Endpunkt
+# sources:  je Land die Zugangs-Metadaten. `status` = Reifegrad:
+#   live      -> Adapter implementiert, Build läuft (Jahr+Lizenz am Dienst verifiziert)
 #   ready     -> Endpunkt/typename live verifiziert, Adapter noch zu schreiben
-#   research  -> nur Portal-/Landing-Seite bekannt, Endpunkt noch zu finden
+#   research  -> nur Portal-/Landing-Seite bekannt; Jahr/Lizenz lt. Übersicht (tentativ)
 #   wms_only  -> Daten existieren nur als WMS-Bild (kein Vektor) -> blockiert
 
 datasets:
@@ -17,58 +16,74 @@ datasets:
     date: auto            # max(year) über alle gemergten Länder
 
 sources:
-  # =================== live (implementiert) ===================
+  # ====================== live (implementiert, verifiziert) ======================
   be:
     status: live
-    kind: wfs
+    kind: wfs             # gdi.berlin.de (deegree), application/json
     url: "https://gdi.berlin.de/services/wfs/verkehrsmengen_2023"
-    # typename + Felder im Adapter (adapters/be.py): dtvw2023kfz + dtvw2023lkw-Join.
-    year: 2023
+    year: 2023            # FeatureType dtvw2023kfz/-lkw (Adapter: be.py)
     license: "dl-de/zero-2.0"
     metric: DTVw          # Berlin: nur Werktage!
 
   ni:
     status: live
-    kind: zip             # INSPIRE-Downloadservice: ZIP mit Shapefile (Sidecars!)
+    kind: zip             # INSPIRE-Downloadservice: ZIP mit Shapefile, EPSG:25832
     url: "https://map.strassenbau.niedersachsen.de/zip/DE-NI-SBV_Downloadservice_SVZ_Zaehlstellenbereiche_2021.zip"
-    # Felder im Adapter (adapters/ni.py): dtv21/dtvsv21/strkl/strbez/zstnr, EPSG:25832.
-    year: 2021
+    year: 2021            # Adapter: ni.py (dtv21/dtvsv21/strkl/strbez/zstnr)
     license: "dl-de/by-2.0"
     metric: DTV
 
   by:
     status: live
-    kind: wfs             # ArcGIS-Server-WFS, liefert GEOJSON (output_format im Adapter)
+    kind: wfs             # ArcGIS-Server-WFS, GEOJSON, EPSG:4326
     url: "https://gisportal-stmb.bayern.de/server/services/WFS/BAYSIS_Verkehrsdaten/MapServer/WFSServer"
-    # typename + Felder im Adapter (adapters/by.py): svz2021_zaehlstellenbereiche, EPSG:4326.
-    year: 2021
+    year: 2021            # typename svz2021_zaehlstellenbereiche (Adapter: by.py)
     license: "CC-BY-4.0"
+    metric: DTV
+
+  bb:
+    status: live
+    kind: wfs             # nativer deegree-WFS, nur GML -> output_format=None, src_crs=25833
+    url: "https://inspire.brandenburg.de/services/zaehlstellen_wfs"
+    year: 2021            # typename app:verkehrsstaerke_2021 (Geometrie+Werte; Adapter: bb.py)
+    license: "dl-de/by-2.0"
     metric: DTV
 
   hh:
     status: live
-    kind: wfs             # geodienste.hamburg.de, GeoJSON (application/geo+json)
+    kind: wfs             # geodienste.hamburg.de, GeoJSON (application/geo+json), EPSG:25832
     url: "https://geodienste.hamburg.de/HH_WFS_Verkehrsmengen"
-    # typenames + Felder im Adapter (adapters/hh.py): dtv_hvs_2019 + dtv_bab_2019.
-    year: 2019
+    year: 2019            # zwei Layer dtv_hvs_2019 + dtv_bab_2019 (Adapter: hh.py)
     license: "dl-de/by-2.0"
     metric: DTV           # nur die sv-Spalte ist ein Anteil (%) -> sv_anteil
 
-  # =================== research (Endpunkt noch zu finden) ===================
   nw:
     status: live
-    kind: zip             # Atom-Feed verlinkt direkte Shapefile-ZIP (opengeodata.nrw.de)
+    kind: zip             # Atom-Feed -> direkte Shapefile-ZIP (opengeodata.nrw.de), EPSG:25832
     url: "https://www.opengeodata.nrw.de/produkte/transport_verkehr/strassennetz/Verkehrswerte2019HR_EPSG25832_Shape.zip"
-    # Felder im Adapter (adapters/nw.py): DTVKFZA/DTVSVA/STRKL/STRBEZ/ZSTNR, EPSG:25832.
-    year: 2019
-    license: "dl-de/by-2.0"
+    year: 2019            # DTVKFZA/DTVSVA/STRKL/STRBEZ/ZSTNR (Adapter: nw.py)
+    license: "dl-de/by-2.0"   # ATOM <rights>: "Datenlizenz Deutschland Namensnennung 2.0"
     metric: DTV
+
+  # ====================== ready (Endpunkt verifiziert) ======================
   sl:
+    status: ready
+    kind: wfs             # ArcGIS-Server-WFS (mapbender-Proxy blockt GetFeature -> Backend-URL)
+    url: "https://geoportal.saarland.de/arcgis/services/Internet/Verkehr_WFS/MapServer/WFSServer"
+    typename: "Verkehr_WFS:SVZ_Zaehlstellen"
+    # ACHTUNG: PUNKT-Geometrie (Zählstellen-Standorte), nicht Linien! Felder: DTV/DTVSV/
+    # Str ("L 375")/TKZST. Braucht einen Punkt-Zweig in merge/tiles + Punkt-Layer im Frontend.
+    year: 2021            # lt. Übersicht; am Datensatz nicht eindeutig datiert
+    license: "offen"      # Caps: "keine Zugriffsbeschränkungen / keine Bedingungen"
+    metric: DTV
+
+  # ====================== research (Endpunkt noch zu finden) ======================
+  th:
     status: research
     kind: wfs
-    url: "https://geoportal.saarland.de/"                       # WFS (DTV + DTVSV) suchen
+    url: "https://geoportal.thueringen.de/themen/verkehr"      # WFS Zählstellenbereiche
     year: 2021
-    license: "dl-de/by-2.0"   # INSPIRE, offen — Wortlaut prüfen
+    license: "dl-de/by-2.0"
     metric: DTV
   sh:
     status: research
@@ -76,13 +91,6 @@ sources:
     url: "https://geoportal.de/Metadata/4db88cf7-23d6-4207-a3da-8ab1a94508ba"
     year: 2021
     license: "CC-BY-4.0"
-    metric: DTV
-  th:
-    status: research
-    kind: wfs
-    url: "https://geoportal.thueringen.de/themen/verkehr"      # WFS Zählstellenbereiche
-    year: 2021
-    license: "dl-de/by-2.0"
     metric: DTV
   st:
     status: research
@@ -96,7 +104,7 @@ sources:
     kind: wfs
     url: "https://www.geoportal-mv.de/"                        # WFS (SVZ 2015)
     year: 2015
-    license: "dl-de/by-2.0"   # prüfen
+    license: "dl-de/by-2.0"
     metric: DTV
   bw:
     status: research
@@ -108,31 +116,20 @@ sources:
     license: "dl-de/by-2.0"
     metric: DTV
 
-  # =================== wms_only / blockiert (kein Vektor) ===================
-  rp:
-    status: wms_only
-    kind: wms
-    url: "https://lbm-geo.rlp.de/cgi-bin/mapserv?map=/home/planer/https-wms/bundesverkehrszaehlung_2021.map"
-    # Nur WMS-Bild; alter Vektor-WFS spatial-objects/393 liefert serverseitig Fehler.
-    year: 2021
-    license: "dl-de/by-2.0"
-    metric: DTV
+  # ====================== wms_only / blockiert (kein Vektor) ======================
   sn:
-    status: wms_only
-    kind: wms             # ttsib-wms; ttsib-wfs existiert nicht (404). GDI-SBV-WFS evtl. separat suchen.
+    status: wms_only      # ttsib-wms; ttsib-wfs existiert nicht (404). GDI-SBV-WFS evtl. separat.
+    kind: wms
     url: "https://www.list.smwa.sachsen.de/wss/service/ttsib-wms/guest"
     year: 2021
     license: "dl-de/by-2.0"
     metric: DTV
-  # =================== weitere live ===================
-  bb:
-    status: live
-    kind: wfs             # nativer deegree-WFS, nur GML -> output_format=None, src_crs=25833
-    url: "https://inspire.brandenburg.de/services/zaehlstellen_wfs"
-    # typename + Felder im Adapter (adapters/bb.py): app:verkehrsstaerke_2021 (Geometrie+Werte).
-    # NICHT su-vector_zaehlstellen_wfs (harmonisiert, ohne DTV) / strassennetz_wfs (nur Netz).
+  rp:
+    status: wms_only      # nur WMS-Bild; alter Vektor-WFS spatial-objects/393 liefert Fehler.
+    kind: wms
+    url: "https://lbm-geo.rlp.de/cgi-bin/mapserv?map=/home/planer/https-wms/bundesverkehrszaehlung_2021.map"
     year: 2021
     license: "dl-de/by-2.0"
     metric: DTV
 
-  # HB (Bremen, nur PDF) und HE (Hessen, Viewer/PDF) vorerst weggelassen — A/B via BASt.
+  # Weggelassen (nur PDF/Viewer; A/B ohnehin über BASt): HB (Bremen), HE (Hessen).
