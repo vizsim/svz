@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <title>Verkehrsmengenkarte – SVZ der Länder</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" />
+  <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+  <script src="https://unpkg.com/pmtiles@3.2.1/dist/pmtiles.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="map"></div>
+
+  <div id="title">
+    <h1>Verkehrsmengen</h1>
+    <p>SVZ der Bundesländer · <span id="state-line">Berlin (DTVw 2023)</span></p>
+  </div>
+
+  <div id="legend">
+    <div class="legend-title">DTV<sub>w</sub> Kfz · Fahrzeuge/24h</div>
+    <div id="legend-scale"></div>
+    <div class="legend-foot" id="legend-foot">Quelle: SenMVKU Berlin · dl-de/zero-2.0</div>
+  </div>
+
+  <script src="main.js"></script>
+</body>
+</html>

@@ -12,3 +12,5 @@ def test_svz_lines_profile_wired() -> None:
     assert "--maximum-zoom=14" in args
     assert "--no-tile-size-limit" in args
     assert "--drop-densest-as-needed" in args
+    # Zahlen müssen als int ins Tile (sonst bricht data-driven styling im Frontend).
+    assert "--attribute-type=dtv_kfz:int" in args

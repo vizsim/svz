@@ -11,3 +11,7 @@ profiles:
     drop_densest_as_needed: true
     no_feature_limit: true
     no_tile_size_limit: true
+    attribute_types:      # sonst landen die Zahlen als Strings im Tile
+      dtv_kfz: int
+      dtv_sv: int
+      year: int

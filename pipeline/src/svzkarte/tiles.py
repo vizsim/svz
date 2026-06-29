@@ -47,6 +47,10 @@ def _profile_args(profile: dict[str, Any], layer_override: str | None = None) ->
         args.append("--force-feature-limit")
     if "maximum_tile_bytes" in profile:
         args.append(f"--maximum-tile-bytes={profile['maximum_tile_bytes']}")
+    # Attribut-Typen erzwingen: tippecanoe liest FlatGeobuf-Attribute sonst als
+    # Strings, was data-driven styling (interpolate über dtv_kfz) bricht.
+    for name, atype in profile.get("attribute_types", {}).items():
+        args.append(f"--attribute-type={name}:{atype}")
     return args
 
 
