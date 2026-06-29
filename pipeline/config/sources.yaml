@@ -56,10 +56,11 @@ sources:
 
   # =================== research (Endpunkt noch zu finden) ===================
   nw:
-    status: research
-    kind: atom            # Shape via Atom-Feed (Straßen.NRW / Geoportal NRW)
-    url: "https://www.wms.nrw.de/rssfeeds/content/geoportal/html/1004.html"
-    year: 2021
+    status: live
+    kind: zip             # Atom-Feed verlinkt direkte Shapefile-ZIP (opengeodata.nrw.de)
+    url: "https://www.opengeodata.nrw.de/produkte/transport_verkehr/strassennetz/Verkehrswerte2019HR_EPSG25832_Shape.zip"
+    # Felder im Adapter (adapters/nw.py): DTVKFZA/DTVSVA/STRKL/STRBEZ/ZSTNR, EPSG:25832.
+    year: 2019
     license: "dl-de/by-2.0"
     metric: DTV
   sl:
