@@ -18,9 +18,11 @@ const SCALE = [
 const protocol = new pmtiles.Protocol();
 maplibregl.addProtocol("pmtiles", protocol.tile);
 
-// dtv_kfz -> Farbe (interpolate). null/0 fällt auf den untersten Stop.
-const colorExpr = ["interpolate", ["linear"], ["coalesce", ["get", "dtv_kfz"], 0]];
-for (const [v, c] of SCALE) colorExpr.push(v, c);
+// dtv_kfz -> Farbe. Fehlt der Wert (keine Zählung), NICHT als 0 einfärben, sondern grau.
+const NODATA = "#b4b4b4";
+const interp = ["interpolate", ["linear"], ["get", "dtv_kfz"]];
+for (const [v, c] of SCALE) interp.push(v, c);
+const colorExpr = ["case", ["has", "dtv_kfz"], interp, NODATA];
 
 // Basemap: gehosteter OpenFreeMap-Positron-Style (keyless, kein lokales style.json).
 const map = new maplibregl.Map({
@@ -99,11 +101,15 @@ map.on("load", () => {
         : p.sv_anteil != null
           ? `<div class="popup-meta">SV-Anteil: ${p.sv_anteil} %</div>`
           : "";
+    const dtvLine =
+      p.dtv_kfz != null
+        ? `<div class="popup-dtv">${fmt(p.dtv_kfz)} Kfz/24h <span class="popup-meta">(${p.metric})</span></div>`
+        : `<div class="popup-meta">keine DTV-Angabe (${p.metric})</div>`;
     new maplibregl.Popup({ closeButton: false })
       .setLngLat(e.lngLat)
       .setHTML(
         `<div class="popup-road">${road}</div>` +
-        `<div class="popup-dtv">${fmt(p.dtv_kfz)} Kfz/24h <span class="popup-meta">(${p.metric})</span></div>` +
+        dtvLine +
         sv +
         `<div class="popup-meta">Klasse ${p.road_class} · ${p.year} · ${p.state}</div>`,
       )
@@ -125,3 +131,7 @@ SCALE.forEach(([, color], i) => {
   row.innerHTML = `<span class="legend-swatch" style="background:${color}"></span>${labels[i]}`;
   legend.appendChild(row);
 });
+const nd = document.createElement("div");
+nd.className = "legend-row";
+nd.innerHTML = `<span class="legend-swatch" style="background:${NODATA}"></span>keine Angabe`;
+legend.appendChild(nd);

@@ -82,14 +82,16 @@ sources:
     license: "offen"      # Caps: "keine Zugriffsbeschränkungen / keine Bedingungen"
     metric: DTV
 
-  # ====================== research (Endpunkt noch zu finden) ======================
   th:
-    status: research
-    kind: wfs
-    url: "https://geoportal.thueringen.de/themen/verkehr"      # WFS Zählstellenbereiche
-    year: 2021
-    license: "dl-de/by-2.0"
+    status: live
+    kind: wfs             # Geoproxy, NUR WFS 1.1.0 (nicht 2.0.0!), GML, EPSG:25832
+    url: "https://www.geoproxy.geoportal-th.de/geoproxy/services/STRNETZ_SVZ_wfs"
+    # Adapter (th.py): ZstBer-Linien + VMenge-Werte über (zst_nr,von_stat,bis_stat) gejoint.
+    year: 2015            # DTV-jahr-Feld; Dienstname "SVZ2015"
+    license: "dl-de/by-2.0"   # © GDI-Th
     metric: DTV
+
+  # ====================== research (Endpunkt noch zu finden) ======================
   sh:
     status: research
     kind: wfs
