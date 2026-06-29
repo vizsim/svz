@@ -17,16 +17,16 @@ if TYPE_CHECKING:
 # Implementiert: code -> Modulpfad (lazy import, damit `svz info` leicht bleibt).
 REGISTRY: dict[str, str] = {
     "be": "svzkarte.adapters.be",
+    "ni": "svzkarte.adapters.ni",
+    "by": "svzkarte.adapters.by",
 }
 
 # Recherchiert, aber noch offen (Zugangsart aus SVZ_Quellen_Bundeslaender.md).
 PLANNED: dict[str, str] = {
-    "by": "Bayern — WFS (BAYSIS), CC-BY 4.0",
-    "bb": "Brandenburg — WFS (Zählstellenbereiche), dl-de/by-2.0",
+    "bb": "Brandenburg — gegebener WFS = nur Netzgeometrie (keine DTV); LS-Dienst noch finden",
     "hh": "Hamburg — WFS/GML, teils DTVw, dl-de/by-2.0",
-    "ni": "Niedersachsen — INSPIRE ATOM/WFS, dl-de/by-2.0",
     "nw": "NRW — Shape/Atom-Feed, dl-de/by-2.0",
-    "sn": "Sachsen — WFS, dl-de/by-2.0",
+    "sn": "Sachsen — nur WMS (ttsib, kein WFS); GDI-SBV-WFS evtl. separat",
     "st": "Sachsen-Anhalt — Netz-WFS + Excel-Werte, dl-de/by-2.0",
     "sl": "Saarland — WMS/WFS, offen (INSPIRE)",
     "sh": "Schleswig-Holstein — WFS, CC-BY 4.0",
@@ -38,7 +38,7 @@ PLANNED: dict[str, str] = {
 }
 
 # Reihenfolge für `build all` (nur implementierte).
-ORDER: list[str] = ["be"]
+ORDER: list[str] = ["be", "ni", "by"]
 
 
 def normalize_fn(code: str) -> Callable[[], GeoDataFrame]:

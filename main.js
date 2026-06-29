@@ -56,7 +56,7 @@ const map = new maplibregl.Map({
           "line-opacity": 0.85,
           "line-width": [
             "interpolate", ["linear"], ["zoom"],
-            6, 0.6, 10, 1.6, 13, 3.5, 15, 6,
+            6, 1.0, 9, 1.8, 13, 3.5, 16, 7,
           ],
         },
       },

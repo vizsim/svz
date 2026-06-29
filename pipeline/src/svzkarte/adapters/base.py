@@ -62,12 +62,18 @@ def fetch_ogc_features(
 
 # --- WFS (BY, SN, ST-Netz, SL, TH, BB, SH …) ---
 def fetch_wfs(
-    url: str, typename: str, *, bbox: str | None = None, version: str = "2.0.0"
+    url: str,
+    typename: str,
+    *,
+    bbox: str | None = None,
+    version: str = "2.0.0",
+    output_format: str = "application/json",
 ) -> GeoDataFrame:
-    """GetFeature gegen einen WFS, Ausgabe als GeoJSON, gelesen via geopandas.
+    """GetFeature gegen einen WFS, gelesen via geopandas.
 
-    Viele Landesdienste sprechen WFS 2.0.0 + `outputFormat=application/json`. Wenn
-    ein Dienst kein JSON kann, hier auf GML umstellen (pyogrio liest beides).
+    `output_format` je Server: deegree spricht `application/json` (Default), ArcGIS
+    Server `GEOJSON`. Wenn ein Dienst gar kein JSON kann, auf GML umstellen
+    (pyogrio liest beides).
     """
     import geopandas as gpd
 
@@ -76,7 +82,7 @@ def fetch_wfs(
         "version": version,
         "request": "GetFeature",
         "typeNames" if version >= "2.0.0" else "typeName": typename,
-        "outputFormat": "application/json",
+        "outputFormat": output_format,
         "srsName": "EPSG:4326",
     }
     if bbox:
@@ -111,22 +117,30 @@ def fetch_atom(feed_url: str, *, match: str | None = None) -> GeoDataFrame:
     return gpd.read_file(io.BytesIO(data))
 
 
+def fetch_zip(url: str) -> GeoDataFrame:
+    """Lädt ein gezipptes Vektordataset direkt (z.B. NI-Downloadservice-ZIP) und
+    liest es als GeoDataFrame — inklusive Shapefile-Sidecars (.dbf/.shx/.prj).
+    """
+    data = requests.get(url, headers=_UA, timeout=_TIMEOUT).content
+    return _read_zip_vector(data)
+
+
 def _read_zip_vector(data: bytes) -> GeoDataFrame:
+    import os
+    import tempfile
+
     import geopandas as gpd
 
-    with zipfile.ZipFile(io.BytesIO(data)) as zf:
-        inner = next(
-            (n for n in zf.namelist() if n.lower().endswith((".shp", ".gml", ".geojson", ".json"))),
-            None,
-        )
-        if inner is None:
-            raise ValueError(f"ZIP ohne Vektordatei: {zf.namelist()}")
-        # geopandas/pyogrio liest direkt aus dem ZIP via virtuellem Pfad.
-        tmp = Path("/tmp") / inner
-        tmp.parent.mkdir(parents=True, exist_ok=True)
-        with zf.open(inner) as src, tmp.open("wb") as dst:
-            dst.write(src.read())
+    # Ganzes ZIP ablegen und via GDAL/vsizip lesen — so kommen bei Shapefiles die
+    # Sidecar-Dateien (.dbf/.shx/.prj) mit (sonst schlägt der Read fehl).
+    fd, name = tempfile.mkstemp(suffix=".zip")
+    os.close(fd)
+    tmp = Path(name)
+    try:
+        tmp.write_bytes(data)
         return gpd.read_file(tmp)
+    finally:
+        tmp.unlink(missing_ok=True)
 
 
 # --- ArcGIS FeatureServer/MapServer (BASt-/Hub-artige Dienste) ---
