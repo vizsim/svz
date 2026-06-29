@@ -16,15 +16,14 @@ datasets:
     date: auto            # max(year) über alle gemergten Länder
 
 sources:
-  # --- implementiert ---
-  rp:
-    kind: wfs             # spatial-objects/393 exponiert WFS-GetCapabilities (kein OGC-Landing)
-    url: "https://www.geoportal.rlp.de/spatial-objects/393"
-    # typename + Feldnamen stehen im Adapter (adapters/rp.py) — am Dienst zu bestätigen.
-    year: 2021
-    license: "dl-de/by-2.0"
-    metric: DTV
-    road_classes: [B, L, K]
+  # --- implementiert (live verifiziert) ---
+  be:
+    kind: wfs
+    url: "https://gdi.berlin.de/services/wfs/verkehrsmengen_2023"
+    # typename + Feldnamen stehen im Adapter (adapters/be.py): dtvw2023kfz + dtvw2023lkw-Join.
+    year: 2023
+    license: "dl-de/zero-2.0"
+    metric: DTVw          # Berlin: nur Werktage!
 
   # --- geplant (Gruppe 1: WFS/OGC API) ---
   by:
@@ -33,12 +32,6 @@ sources:
     year: 2021
     license: "CC-BY-4.0"
     metric: DTV
-  be:
-    kind: wfs
-    url: "https://gdi.berlin.de/services/wfs/verkehrsmengen"    # TODO: typename verifizieren
-    year: 2019
-    license: "dl-de/zero-2.0"
-    metric: DTVw          # Berlin: nur Werktage!
   bb:
     kind: wfs
     url: "https://www.ls.brandenburg.de/"                       # TODO: WFS Zählstellenbereiche
