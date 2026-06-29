@@ -113,14 +113,17 @@ sources:
     year: 2015
     license: "dl-de/by-2.0"
     metric: DTV
-  # ====================== wms_only / blockiert (kein Vektor) ======================
   sn:
-    status: wms_only      # ttsib-wms; ttsib-wfs existiert nicht (404). GDI-SBV-WFS evtl. separat.
-    kind: wms
-    url: "https://www.list.smwa.sachsen.de/wss/service/ttsib-wms/guest"
+    status: live
+    kind: zip             # GDI-SBV INSPIRE-Downloadservice: Shapefile-ZIP, EPSG:25833
+    url: "https://www.list.smwa.sachsen.de/gdi/download/DE-SN-SBV-SVZ2021.zip"
+    # Felder im Adapter (sn.py): dtv_kfzges/dtv_sv/sv_kfz/strasse/klasse(S->L)/nummer.
+    # Dienst-Alternative: geodienste.sachsen.de/wfs_list_ttsib/guest (frühere ttsib-wms-Sackgasse war falscher Pfad).
     year: 2021
-    license: "dl-de/by-2.0"
+    license: "dl-de/by-2.0"   # © Straßenbauverwaltung Sachsen
     metric: DTV
+
+  # ====================== wms_only / blockiert (kein Vektor) ======================
   rp:
     status: wms_only      # nur WMS-Bild; alter Vektor-WFS spatial-objects/393 liefert Fehler.
     kind: wms
