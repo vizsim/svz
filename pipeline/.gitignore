@@ -1,0 +1,30 @@
+# --- Secrets ---
+.env
+
+# --- Daten (rohe + abgeleitete Artefakte; liegen lokal + im Bucket, nicht im Git) ---
+data/
+*.pmtiles
+*.parquet
+*.fgb
+*.gpkg
+*.geojson
+*.geojson.gz
+*.xlsx
+
+# Ausnahme: das generierte Manifest gehört ins Deploy (klein, kein Datenblob)
+!data/manifest.json
+
+# --- Python / uv ---
+__pycache__/
+*.py[cod]
+.venv/
+.ruff_cache/
+.pytest_cache/
+*.egg-info/
+build/
+dist/
+
+# --- OS / Editor ---
+.DS_Store
+.idea/
+.vscode/

@@ -1,0 +1,113 @@
+# Quellen-Metadata (von Hand gepflegt). Speist data/manifest.json + Attribution
+# und liefert den Adaptern die Zugangs-Parameter (kind/url/...). Inhalte aus
+# SVZ_Quellen_Bundeslaender.md (Stand Juni 2026).
+#
+# datasets: das ausgespielte PMTiles-Artefakt (date: auto -> max year über merge).
+# sources:  je Land die Zugangs-Metadaten, die der Adapter nutzt. `url` ist bei
+#           manchen Ländern noch die Portal-/Landing-Seite — der konkrete
+#           typename/collection/Feldname wird beim Implementieren am Dienst
+#           verifiziert (TODO-Markierung pro offenem Land).
+
+datasets:
+  svz_de:
+    file: "svz/svz_de.pmtiles"
+    label: "Verkehrsmengen (SVZ der Länder)"
+    attribution: "Straßenbauverwaltungen der Länder + BASt (dl-de/by-2.0, CC-BY 4.0, dl-de/zero-2.0)"
+    date: auto            # max(year) über alle gemergten Länder
+
+sources:
+  # --- implementiert ---
+  rp:
+    kind: wfs             # spatial-objects/393 exponiert WFS-GetCapabilities (kein OGC-Landing)
+    url: "https://www.geoportal.rlp.de/spatial-objects/393"
+    # typename + Feldnamen stehen im Adapter (adapters/rp.py) — am Dienst zu bestätigen.
+    year: 2021
+    license: "dl-de/by-2.0"
+    metric: DTV
+    road_classes: [B, L, K]
+
+  # --- geplant (Gruppe 1: WFS/OGC API) ---
+  by:
+    kind: wfs
+    url: "https://www.baysis.bayern.de/internet/verdat/svz/"   # TODO: WFS-GetCapabilities
+    year: 2021
+    license: "CC-BY-4.0"
+    metric: DTV
+  be:
+    kind: wfs
+    url: "https://gdi.berlin.de/services/wfs/verkehrsmengen"    # TODO: typename verifizieren
+    year: 2019
+    license: "dl-de/zero-2.0"
+    metric: DTVw          # Berlin: nur Werktage!
+  bb:
+    kind: wfs
+    url: "https://www.ls.brandenburg.de/"                       # TODO: WFS Zählstellenbereiche
+    year: 2021
+    license: "dl-de/by-2.0"
+    metric: DTV
+  hh:
+    kind: wfs
+    url: "https://suche.transparenz.hamburg.de/dataset/verkehrsmengen-auf-hauptverkehrsstrassen-in-hamburg43"
+    year: 2019
+    license: "dl-de/by-2.0"
+    metric: DTV           # tlw. DTVw — beim Implementieren prüfen
+  ni:
+    kind: atom
+    url: "https://www.strassenbau.niedersachsen.de/"           # TODO: INSPIRE-Atom-Feed-URL
+    year: 2021
+    license: "dl-de/by-2.0"
+    metric: DTV
+  nw:
+    kind: atom
+    url: "https://www.wms.nrw.de/rssfeeds/content/geoportal/html/1004.html"  # TODO: Shape-Atom
+    year: 2021
+    license: "dl-de/by-2.0"
+    metric: DTV
+  sn:
+    kind: wfs
+    url: "https://www.govdata.de/suche/daten/strassenverkehrszahlungen-svz-in-sachsen99855"  # TODO: WFS
+    year: 2021
+    license: "dl-de/by-2.0"
+    metric: DTV
+  sl:
+    kind: wfs
+    url: "https://geoportal.saarland.de/"                       # TODO: WFS (DTV + DTVSV)
+    year: 2021
+    license: "dl-de/by-2.0"   # INSPIRE, offen — Wortlaut prüfen
+    metric: DTV
+  sh:
+    kind: wfs
+    url: "https://geoportal.de/Metadata/4db88cf7-23d6-4207-a3da-8ab1a94508ba"  # TODO: WFS
+    year: 2021
+    license: "CC-BY-4.0"
+    metric: DTV
+  th:
+    kind: wfs
+    url: "https://geoportal.thueringen.de/themen/verkehr"      # TODO: WFS Zählstellenbereiche
+    year: 2021
+    license: "dl-de/by-2.0"
+    metric: DTV
+  st:
+    kind: wfs
+    url: "https://www.geodatenportal.sachsen-anhalt.de/"       # Netz-WFS + Excel-Werte (Join)
+    year: 2021
+    license: "dl-de/by-2.0"
+    metric: DTV
+  mv:
+    kind: wfs
+    url: "https://www.geoportal-mv.de/"                        # TODO: WFS (SVZ 2015)
+    year: 2015
+    license: "dl-de/by-2.0"   # prüfen
+    metric: DTV
+
+  # --- geplant (Gruppe 1b: Excel + Geometrie-Join) ---
+  bw:
+    kind: xlsxzip
+    url: "https://mobidata-bw.de/dataset/endergebnisse_strassenverkehrszaehlung"  # CKAN
+    stations_url: "https://mobidata-bw.de/dataset/karte_strassenverkehrszaehlung"  # Geometrie
+    join: station_id
+    year: 2024
+    license: "dl-de/by-2.0"
+    metric: DTV
+
+  # HB (Bremen, nur PDF) und HE (Hessen, Viewer/PDF) vorerst weggelassen — A/B via BASt.

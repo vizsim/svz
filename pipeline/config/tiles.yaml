@@ -1,0 +1,13 @@
+# Tippecanoe-Profile. tiles.py übersetzt diese in Flags. `layer` = interner
+# Layer-Name = Teil des Frontend-Vertrags → nicht ändern, ohne addSources/addLayers
+# mitzuziehen. Abgeleitet aus dem hvs_lines/highways_major-Muster von unfallkarte.
+
+profiles:
+  svz_lines:
+    layer: svz            # Frontend-Vertrag
+    minzoom: 6
+    maxzoom: 14
+    drop_rate: 0
+    drop_densest_as_needed: true
+    no_feature_limit: true
+    no_tile_size_limit: true
