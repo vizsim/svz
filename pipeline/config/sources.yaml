@@ -45,14 +45,16 @@ sources:
     license: "CC-BY-4.0"
     metric: DTV
 
-  # =================== research (Endpunkt noch zu finden) ===================
   hh:
-    status: research
-    kind: wfs
-    url: "https://suche.transparenz.hamburg.de/dataset/verkehrsmengen-auf-hauptverkehrsstrassen-in-hamburg43"
+    status: live
+    kind: wfs             # geodienste.hamburg.de, GeoJSON (application/geo+json)
+    url: "https://geodienste.hamburg.de/HH_WFS_Verkehrsmengen"
+    # typenames + Felder im Adapter (adapters/hh.py): dtv_hvs_2019 + dtv_bab_2019.
     year: 2019
     license: "dl-de/by-2.0"
-    metric: DTV           # tlw. DTVw — beim Implementieren prüfen
+    metric: DTV           # nur die sv-Spalte ist ein Anteil (%) -> sv_anteil
+
+  # =================== research (Endpunkt noch zu finden) ===================
   nw:
     status: research
     kind: atom            # Shape via Atom-Feed (Straßen.NRW / Geoportal NRW)
