@@ -1,6 +1,6 @@
 // Verkehrsmengenkarte – MapLibre-Viewer für svz_de.pmtiles.
-// Eine Source `svz` (PMTiles) + ein Linien-Layer, eingefärbt nach dtv_kfz.
-// PMTILES_URL ist relativ zum ausgelieferten Root (lokal: über den Dev-Server).
+// Basemap: lokales OpenFreeMap-Positron-style.json (keyless). Die svz-Linien werden
+// UNTER die erste Symbol-(Label-)Ebene gehängt -> Orts-/Straßennamen bleiben oben.
 const PMTILES_URL = "pipeline/data/svz/svz_de.pmtiles";
 
 // Farbskala: niedrig (grün) -> hoch (rot). Ein Array für Layer-Paint UND Legende.
@@ -22,69 +22,73 @@ maplibregl.addProtocol("pmtiles", protocol.tile);
 const colorExpr = ["interpolate", ["linear"], ["coalesce", ["get", "dtv_kfz"], 0]];
 for (const [v, c] of SCALE) colorExpr.push(v, c);
 
+// Basemap: gehosteter OpenFreeMap-Positron-Style (keyless, kein lokales style.json).
 const map = new maplibregl.Map({
   container: "map",
+  style: "https://tiles.openfreemap.org/styles/positron",
   center: [13.404, 52.52],
   zoom: 10.3,
   hash: true,
-  style: {
-    version: 8,
-    glyphs: "https://basemaps.cartocdn.com/fonts/{fontstack}/{range}.pbf",
-    sources: {
-      basemap: {
-        type: "raster",
-        tiles: ["https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png"],
-        tileSize: 256,
-        attribution: "© OpenStreetMap, © CARTO",
-      },
-      svz: {
-        type: "vector",
-        url: "pmtiles://" + PMTILES_URL,
-        attribution: "Verkehrsmengen: Straßenbauverwaltungen der Länder",
-      },
-    },
-    layers: [
-      { id: "basemap", type: "raster", source: "basemap" },
-      {
-        id: "svz-lines",
-        type: "line",
-        source: "svz",
-        "source-layer": "svz",
-        layout: { "line-cap": "round", "line-join": "round" },
-        paint: {
-          "line-color": colorExpr,
-          "line-opacity": 0.85,
-          "line-width": [
-            "interpolate", ["linear"], ["zoom"],
-            6, 1.0, 9, 1.8, 13, 3.5, 16, 7,
-          ],
-        },
-      },
-    ],
-  },
+  minZoom: 5,
+  maxZoom: 18,
 });
+window.map = map;
 
 map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
 map.addControl(new maplibregl.ScaleControl({ unit: "metric" }), "bottom-right");
 
-// Klick-Popup: road_no · DTV · year · state · Klasse.
-const fmt = (n) => (n == null ? "–" : Number(n).toLocaleString("de-DE"));
-map.on("click", "svz-lines", (e) => {
-  const p = e.features[0].properties;
-  const road = p.road_no || `${p.road_class}-Straße`;
-  new maplibregl.Popup({ closeButton: false })
-    .setLngLat(e.lngLat)
-    .setHTML(
-      `<div class="popup-road">${road}</div>` +
-      `<div class="popup-dtv">${fmt(p.dtv_kfz)} Kfz/24h <span class="popup-meta">(${p.metric})</span></div>` +
-      (p.dtv_sv != null ? `<div class="popup-meta">davon SV: ${fmt(p.dtv_sv)}</div>` : "") +
-      `<div class="popup-meta">Klasse ${p.road_class} · ${p.year} · ${p.state}</div>` +
-      `<div class="popup-meta">ZSt ${p.station_id ?? "–"}</div>`
-    )
-    .addTo(map);
+map.on("load", () => {
+  map.addSource("svz", {
+    type: "vector",
+    url: "pmtiles://" + PMTILES_URL,
+    attribution: "Verkehrsmengen: Straßenbauverwaltungen der Länder",
+  });
+
+  // svz-Linien direkt unter die erste Symbol-(Label-)Ebene legen.
+  const firstSymbol = map.getStyle().layers.find((l) => l.type === "symbol")?.id;
+  map.addLayer(
+    {
+      id: "svz-lines",
+      type: "line",
+      source: "svz",
+      "source-layer": "svz",
+      layout: { "line-cap": "round", "line-join": "round" },
+      paint: {
+        "line-color": colorExpr,
+        "line-opacity": 0.9,
+        "line-width": [
+          "interpolate", ["linear"], ["zoom"],
+          6, 1.0, 9, 1.8, 13, 3.5, 16, 7,
+        ],
+      },
+    },
+    firstSymbol,
+  );
+
+  // Klick-Popup.
+  const fmt = (n) => (n == null ? "–" : Number(n).toLocaleString("de-DE"));
+  map.on("click", "svz-lines", (e) => {
+    const p = e.features[0].properties;
+    const road = p.road_no || `${p.road_class}-Straße`;
+    const sv =
+      p.dtv_sv != null
+        ? `<div class="popup-meta">davon SV: ${fmt(p.dtv_sv)}</div>`
+        : p.sv_anteil != null
+          ? `<div class="popup-meta">SV-Anteil: ${p.sv_anteil} %</div>`
+          : "";
+    new maplibregl.Popup({ closeButton: false })
+      .setLngLat(e.lngLat)
+      .setHTML(
+        `<div class="popup-road">${road}</div>` +
+        `<div class="popup-dtv">${fmt(p.dtv_kfz)} Kfz/24h <span class="popup-meta">(${p.metric})</span></div>` +
+        sv +
+        `<div class="popup-meta">Klasse ${p.road_class} · ${p.year} · ${p.state}</div>`,
+      )
+      .addTo(map);
+  });
+  map.on("mouseenter", "svz-lines", () => (map.getCanvas().style.cursor = "pointer"));
+  map.on("mouseleave", "svz-lines", () => (map.getCanvas().style.cursor = ""));
 });
-map.on("mouseenter", "svz-lines", () => (map.getCanvas().style.cursor = "pointer"));
-map.on("mouseleave", "svz-lines", () => (map.getCanvas().style.cursor = ""));
 
 // Legende aus derselben Skala bauen.
 const legend = document.getElementById("legend-scale");
@@ -95,7 +99,3 @@ SCALE.forEach(([, color], i) => {
   row.innerHTML = `<span class="legend-swatch" style="background:${color}"></span>${labels[i]}`;
   legend.appendChild(row);
 });
-
-// Für Headless-Screenshots: map exponieren (CDP prüft isStyleLoaded + areTilesLoaded).
-window.map = map;
-map.on("idle", () => { window.__MAP_IDLE__ = true; document.title = "READY"; });
