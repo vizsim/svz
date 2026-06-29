@@ -121,15 +121,13 @@ sources:
     year: 2021
     license: "dl-de/by-2.0"
     metric: DTV
+  # =================== weitere live ===================
   bb:
-    status: research
-    kind: wfs             # su-vector_zaehlstellen_wfs: echte Zählstellenbereiche-Geometrie (GML)
-    url: "https://inspire.brandenburg.de/services/su-vector_zaehlstellen_wfs"
-    typename: "su-vector:VectorStatisticalUnit"   # EPSG:25833, MultiLineString
-    # ACHTUNG INSPIRE-Statistical-Units-Schema: nur Geometrie + Zählstellennr (thematicId)
-    # + Straßenlabel (text, z.B. "K6803"). KEINE DTV-Werte! Werte-Tabelle zum Join über
-    # die Zählstellennummer noch finden (LS-Verkehrsstärkenkarte / separater Dienst).
-    # (strassennetz_wfs am Geoportal = nur Autobahnkilometrierung, ebenfalls ohne DTV.)
+    status: live
+    kind: wfs             # nativer deegree-WFS, nur GML -> output_format=None, src_crs=25833
+    url: "https://inspire.brandenburg.de/services/zaehlstellen_wfs"
+    # typename + Felder im Adapter (adapters/bb.py): app:verkehrsstaerke_2021 (Geometrie+Werte).
+    # NICHT su-vector_zaehlstellen_wfs (harmonisiert, ohne DTV) / strassennetz_wfs (nur Netz).
     year: 2021
     license: "dl-de/by-2.0"
     metric: DTV

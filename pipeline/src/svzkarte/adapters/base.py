@@ -67,13 +67,15 @@ def fetch_wfs(
     *,
     bbox: str | None = None,
     version: str = "2.0.0",
-    output_format: str = "application/json",
+    output_format: str | None = "application/json",
+    src_crs: int | None = None,
 ) -> GeoDataFrame:
     """GetFeature gegen einen WFS, gelesen via geopandas.
 
     `output_format` je Server: deegree spricht `application/json` (Default), ArcGIS
-    Server `GEOJSON`. Wenn ein Dienst gar kein JSON kann, auf GML umstellen
-    (pyogrio liest beides).
+    Server `GEOJSON`, manche können nur GML -> `output_format=None` (Server-Default).
+    `src_crs`: native CRS anfordern statt 4326 (vermeidet die GML-Achsenfalle bei
+    4326) und auf dem Ergebnis setzen; `to_canonical` reprojiziert dann nach 4326.
     """
     import geopandas as gpd
 
@@ -82,14 +84,18 @@ def fetch_wfs(
         "version": version,
         "request": "GetFeature",
         "typeNames" if version >= "2.0.0" else "typeName": typename,
-        "outputFormat": output_format,
-        "srsName": "EPSG:4326",
+        "srsName": f"EPSG:{src_crs}" if src_crs else "EPSG:4326",
     }
+    if output_format:
+        params["outputFormat"] = output_format
     if bbox:
         params["bbox"] = bbox
     r = requests.get(url, params=params, headers=_UA, timeout=_TIMEOUT)
     r.raise_for_status()
-    return gpd.read_file(io.BytesIO(r.content))
+    gdf = gpd.read_file(io.BytesIO(r.content))
+    if src_crs and (gdf.crs is None or gdf.crs.to_epsg() != src_crs):
+        gdf = gdf.set_crs(epsg=src_crs, allow_override=True)
+    return gdf
 
 
 # --- ATOM / INSPIRE-Downloaddienst (NI, NRW-Shape) ---
@@ -227,6 +233,7 @@ def to_canonical(
     `road_class_from`+optional `road_class_map` leitet sie je Zeile aus einer Spalte ab.
     """
     import geopandas as gpd
+    import pandas as pd
 
     out = gdf.rename(columns=mapping)
 
@@ -258,8 +265,9 @@ def to_canonical(
 
     keep = [*schema.COLUMNS, "geometry"]
     out = gpd.GeoDataFrame(out[keep], geometry="geometry", crs=f"EPSG:{schema.EPSG}")
+    # numerisch erzwingen (manche Quellen liefern Zahlen als String, z.B. BB-GML "1281.0")
     for intcol in ("dtv_kfz", "dtv_sv"):
-        out[intcol] = out[intcol].astype("Int64")
+        out[intcol] = pd.to_numeric(out[intcol], errors="coerce").round().astype("Int64")
     return out
 
 

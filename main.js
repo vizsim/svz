@@ -96,5 +96,6 @@ SCALE.forEach(([, color], i) => {
   legend.appendChild(row);
 });
 
-// Für den Headless-Screenshot: Flag setzen, sobald die Karte fertig gerendert ist.
+// Für Headless-Screenshots: map exponieren (CDP prüft isStyleLoaded + areTilesLoaded).
+window.map = map;
 map.on("idle", () => { window.__MAP_IDLE__ = true; document.title = "READY"; });
