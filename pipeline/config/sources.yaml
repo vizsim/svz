@@ -1,52 +1,53 @@
-# Quellen-Metadata (von Hand gepflegt). Speist data/manifest.json + Attribution
-# und liefert den Adaptern die Zugangs-Parameter (kind/url/...).
+# Quellen-Metadata (von Hand gepflegt). Speist data/manifest.json + Attribution und
+# liefert den Adaptern die Zugangs-Parameter (kind/url/...).
 #
-# datasets: das ausgespielte PMTiles-Artefakt (date: auto -> max year über merge).
-# sources:  je Land die Zugangs-Metadaten. `status` = Reifegrad:
-#   live      -> Adapter implementiert, Build läuft (Jahr+Lizenz am Dienst verifiziert)
-#   ready     -> Endpunkt/typename live verifiziert, Adapter noch zu schreiben
-#   research  -> nur Portal-/Landing-Seite bekannt; Jahr/Lizenz lt. Übersicht (tentativ)
-#   wms_only  -> Daten existieren nur als WMS-Bild (kein Vektor) -> blockiert
+# datasets: die ausgespielten PMTiles (date: auto -> max year über merge).
+# sources:  je Quelle die Zugangs-Metadaten. `status` = Reifegrad:
+#   live      -> Adapter implementiert, Build läuft (Jahr + Lizenz verifiziert)
+#   research  -> Dienst existiert, liefert aber (noch) keine Daten (z.B. Backend defekt)
+#   blocked   -> kein maschinenlesbarer Vektor-DTV (nur WMS/PDF/Viewer oder Netz ohne DTV)
+# `kind` = zip | geojson | wfs | ogcapi | xlsx | wfs+xlsx | pdf | viewer. Geometrie: Linien-Länder ->
+# Layer `svz`, Punkt-Länder (BW/SL) -> `svz_points`, BASt -> eigenes svz_bast.pmtiles.
+# Sortierung: je Gruppe alphabetisch nach Landesname.
 
 datasets:
   svz_de:
     file: "svz/svz_de.pmtiles"
     label: "Verkehrsmengen (SVZ der Länder)"
-    attribution: "Straßenbauverwaltungen der Länder + BASt (dl-de/by-2.0, CC-BY 4.0, dl-de/zero-2.0)"
+    attribution: "Straßenbauverwaltungen der Länder (dl-de/by-2.0, CC-BY 4.0, dl-de/zero-2.0)"
     date: auto            # max(year) über alle gemergten Länder
+  svz_bast:
+    file: "svz/svz_bast.pmtiles"
+    label: "BASt-Backbone (Bundesfernstraßen A+B)"
+    attribution: "© BASt (bundesweite SVZ der Bundesfernstraßen)"
+    date: auto
 
 sources:
-  # ====================== live (implementiert, verifiziert) ======================
-  be:
-    status: live
-    kind: wfs             # gdi.berlin.de (deegree), application/json
-    url: "https://gdi.berlin.de/services/wfs/verkehrsmengen_2023"
-    year: 2023            # FeatureType dtvw2023kfz/-lkw (Adapter: be.py)
-    license: "dl-de/zero-2.0"
-    metric: DTVw          # Berlin: nur Werktage!
-
-  ni:
-    status: live
-    kind: zip             # INSPIRE-Downloadservice: ZIP mit Shapefile, EPSG:25832
-    url: "https://map.strassenbau.niedersachsen.de/zip/DE-NI-SBV_Downloadservice_SVZ_Zaehlstellenbereiche_2021.zip"
-    year: 2021            # Adapter: ni.py (dtv21/dtvsv21/strkl/strbez/zstnr)
-    license: "CC-BY-4.0"  # geprüft am INSPIRE-Record (useLimitation „CC BY 4.0"); Übersicht sagte dl-de/by-2.0
-    metric: DTV
-
+  # ============================================================================
+  # LIVE — Linien-Länder (Zählstellenbereiche/-segmente -> Layer `svz`)
+  # ============================================================================
   by:
     status: live
     kind: wfs             # ArcGIS-Server-WFS, GEOJSON, EPSG:4326
     url: "https://gisportal-stmb.bayern.de/server/services/WFS/BAYSIS_Verkehrsdaten/MapServer/WFSServer"
     year: 2021            # typename svz2021_zaehlstellenbereiche (Adapter: by.py)
-    license: "CC-BY-4.0"
+    license: "CC-BY-4.0"  # Caps: "Creative Commons Namensnennung 4.0" (BAYSIS)
     metric: DTV
+
+  be:
+    status: live
+    kind: wfs             # gdi.berlin.de (deegree), application/json
+    url: "https://gdi.berlin.de/services/wfs/verkehrsmengen_2023"
+    year: 2023            # FeatureTypes dtvw2023kfz + dtvw2023lkw-Join (Adapter: be.py)
+    license: "dl-de/zero-2.0"  # CKAN license_id (Berlin Open Data)
+    metric: DTVw          # Berlin: nur Werktage!
 
   bb:
     status: live
     kind: wfs             # nativer deegree-WFS, nur GML -> output_format=None, src_crs=25833
     url: "https://inspire.brandenburg.de/services/zaehlstellen_wfs"
     year: 2021            # typename app:verkehrsstaerke_2021 (Geometrie+Werte; Adapter: bb.py)
-    license: "dl-de/by-2.0"
+    license: "dl-de/by-2.0"  # Caps: "© Landesbetrieb Straßenwesen Brandenburg"
     metric: DTV
 
   hh:
@@ -54,101 +55,129 @@ sources:
     kind: wfs             # geodienste.hamburg.de, GeoJSON (application/geo+json), EPSG:25832
     url: "https://geodienste.hamburg.de/HH_WFS_Verkehrsmengen"
     year: 2019            # zwei Layer dtv_hvs_2019 + dtv_bab_2019 (Adapter: hh.py)
-    license: "dl-de/by-2.0"
+    license: "dl-de/by-2.0"  # CKAN license_id (Transparenzportal HH)
     metric: DTV           # nur die sv-Spalte ist ein Anteil (%) -> sv_anteil
+
+  ni:
+    status: live
+    kind: zip             # INSPIRE-Downloadservice: ZIP mit Shapefile, EPSG:25832
+    url: "https://map.strassenbau.niedersachsen.de/zip/DE-NI-SBV_Downloadservice_SVZ_Zaehlstellenbereiche_2021.zip"
+    year: 2021            # dtv21/dtvsv21/strkl/strbez/zstnr (Adapter: ni.py)
+    license: "CC-BY-4.0"  # INSPIRE-Record useLimitation „CC BY 4.0" (Übersicht sagte dl-de/by-2.0)
+    metric: DTV
 
   nw:
     status: live
     kind: zip             # Atom-Feed -> direkte Shapefile-ZIP (opengeodata.nrw.de), EPSG:25832
     url: "https://www.opengeodata.nrw.de/produkte/transport_verkehr/strassennetz/Verkehrswerte2019HR_EPSG25832_Shape.zip"
-    year: 2019            # DTVKFZA/DTVSVA/STRKL/STRBEZ/ZSTNR (Adapter: nw.py)
-    license: "dl-de/by-2.0"   # ATOM <rights>: "Datenlizenz Deutschland Namensnennung 2.0"
+    year: 2019            # DTVKFZA/DTVSVA/STRKL/STRBEZ/ZSTNR (Adapter: nw.py); nur B/L/K (keine A)
+    license: "dl-de/by-2.0"  # ATOM <rights>: "Datenlizenz Deutschland Namensnennung 2.0"
     metric: DTV
 
-  # ====================== live: Punkt-Quellen (svz_points-Layer) ======================
-  bw:
+  sn:
     status: live
-    kind: geojson         # direkte GeoJSON-Datei (PUNKTE), EPSG:4326
-    url: "https://mobidata-bw.de/karten_geojsons/maps/count_car/SVZ-Zaehlstellen_231011_augmented_SVZ2024.geojson"
-    year: 2024            # DTV2024/DTVSV/klasse/nummer/svznr (Adapter: bw.py)
-    license: "dl-de/by-2.0"
-    metric: DTV
-  sl:
-    status: live
-    kind: wfs             # ArcGIS-Backend-WFS (PUNKTE); Mapbender-Proxy blockt GetFeature
-    url: "https://geoportal.saarland.de/arcgis/services/Internet/Verkehr_WFS/MapServer/WFSServer"
-    # typename + Felder im Adapter (adapters/sl.py): Verkehr_WFS:SVZ_Zaehlstellen.
-    year: 2021            # lt. Übersicht; am Datensatz nicht eindeutig datiert
-    license: "CC-BY-4.0"  # geoportal.de-Metadaten (Record 7673af77-…): cc-by-4.0, Namensnennung
+    kind: zip             # GDI-SBV INSPIRE-Downloadservice: Shapefile-ZIP, EPSG:25833
+    url: "https://www.list.smwa.sachsen.de/gdi/download/DE-SN-SBV-SVZ2021.zip"
+    year: 2021            # dtv_kfzges/dtv_sv/sv_kfz/strasse/klasse(S->L)/nummer (Adapter: sn.py)
+    license: "dl-de/by-2.0"  # INSPIRE-Download-Def <rights>, © Straßenbauverwaltung Sachsen
     metric: DTV
 
-  # ---- Bundesweit: BASt-Backbone (Bundesfernstraßen A + B) ----
-  bast:
+  st:
     status: live
-    kind: xlsx            # BASt SVZ 2021, Blatt Zeilenformat, mit X/Y-Koordinaten (UTM32N)
-    urls:                 # PUNKTE (state=DE, source=bast); Adapter: bast.py
-      - "https://www.bast.de/DE/Publikationen/Statistik/Verkehrsdaten/2021/Autobahnen-2021.xlsx?__blob=publicationFile&v=1"
-      - "https://www.bast.de/DE/Publikationen/Statistik/Verkehrsdaten/2021/Bundesstrassen-2021.xlsx?__blob=publicationFile&v=1"
-    year: 2021
-    license: "© BASt"        # SVZ-Ergebnis-Excel ohne explizite Lizenz; nur © BASt (Netz-WFS wäre CC-BY-4.0)
+    kind: wfs+xlsx        # Netz-WFS (Geometrie, vnk/nnk) + DTV-Excel über Netzknoten gejoint
+    url: "https://www.geodatenportal.sachsen-anhalt.de/gfds/ws/wfs/a78d7bc1-ffbb-cf76/GDI-LSA_LSBB_STRASSENNETZE/ows.wfs"
+    values_url: "https://lsbb.sachsen-anhalt.de/fileadmin/Bibliothek/Politik_und_Verwaltung/Landesbetriebe/LSBB/Service/Strassenverkehrszaehlungen/Dateien_2025/Ergebnisse_SVZ_2021.xlsx"
+    year: 2021            # 4 Netz-Klassen + Excel-Blatt Zeilenformat, Join (vnk,nnk)<->(VonNK,NachNK)
+    license: "dl-de/by-2.0"  # © Geofachdaten-DE / LSBB Sachsen-Anhalt (nicht metadaten-verifiziert)
     metric: DTV
 
   th:
     status: live
     kind: wfs             # Geoproxy, NUR WFS 1.1.0 (nicht 2.0.0!), GML, EPSG:25832
     url: "https://www.geoproxy.geoportal-th.de/geoproxy/services/STRNETZ_SVZ_wfs"
-    # Adapter (th.py): ZstBer-Linien + VMenge-Werte über (zst_nr,von_stat,bis_stat) gejoint.
-    year: 2015            # DTV-jahr-Feld; Dienstname "SVZ2015"
-    license: "dl-de/by-2.0"   # © GDI-Th
+    year: 2015            # ZstBer-Linien + VMenge-Werte über (zst_nr,von_stat,bis_stat) (Adapter: th.py)
+    license: "dl-de/by-2.0"  # Caps: dl-de/by-2-0, © GDI-Th
     metric: DTV
 
-  # ====================== research (Endpunkt noch zu finden) ======================
-  sh:
-    status: blocked       # WFS ist NUR Netzgeometrie (Strassennetz/Netzknoten, VNK/NNK) — KEIN DTV.
+  # ============================================================================
+  # LIVE — Punkt-Länder (Zählstellen-Standorte -> Layer `svz_points`)
+  # ============================================================================
+  bw:
+    status: live
+    kind: geojson         # direkte GeoJSON-Datei (PUNKTE), EPSG:4326
+    url: "https://mobidata-bw.de/karten_geojsons/maps/count_car/SVZ-Zaehlstellen_231011_augmented_SVZ2024.geojson"
+    year: 2024            # DTV2024/DTVSV/klasse/nummer/svznr (Adapter: bw.py)
+    license: "dl-de/by-2.0"  # mobidata-bw CKAN license_id
+    metric: DTV
+
+  sl:
+    status: live
+    kind: wfs             # ArcGIS-Backend-WFS (PUNKTE); Mapbender-Proxy blockt GetFeature
+    url: "https://geoportal.saarland.de/arcgis/services/Internet/Verkehr_WFS/MapServer/WFSServer"
+    year: 2021            # typename Verkehr_WFS:SVZ_Zaehlstellen (Adapter: sl.py); srs=CRS:84!
+    license: "CC-BY-4.0"  # geoportal.de-Record 7673af77-…: cc-by-4.0, Namensnennung
+    metric: DTV
+
+  # ============================================================================
+  # LIVE — bundesweit (Backbone -> eigenes svz_bast.pmtiles)
+  # ============================================================================
+  bast:
+    status: live
+    kind: xlsx            # BASt SVZ 2021, Blatt Zeilenformat, X/Y-Koordinaten (UTM32N) -> PUNKTE
+    urls:                 # state=DE, source=bast (Adapter: bast.py)
+      - "https://www.bast.de/DE/Publikationen/Statistik/Verkehrsdaten/2021/Autobahnen-2021.xlsx?__blob=publicationFile&v=1"
+      - "https://www.bast.de/DE/Publikationen/Statistik/Verkehrsdaten/2021/Bundesstrassen-2021.xlsx?__blob=publicationFile&v=1"
+    year: 2021
+    license: "© BASt"     # SVZ-Ergebnis-Excel ohne explizite Lizenz (nur © BASt)
+    metric: DTV
+
+  # ============================================================================
+  # RESEARCH — Dienst existiert, liefert aber (noch) keine Daten
+  # ============================================================================
+  rp:
+    status: research      # OGC API Features (ldproxy) vorhanden, Backend aber aktuell defekt
+    kind: ogcapi          # Collections DTV_WFS:SVZ{Jahr}_Zaehlstellenbereiche (Linien+DTV)
+    url: "https://www.geoportal.rlp.de/spatial-objects/393"
+    # Items …/393/collections/<id>/items?f=json&limit=1000; base.fetch_ogc_features passt.
+    # Stand 2026: liefert serverseitig "Wfs object could not be created from db!" -> warten.
+    year: 2021
+    license: "dl-de/by-2.0"
+    metric: DTV
+
+  # ============================================================================
+  # BLOCKED — kein maschinenlesbarer Vektor-DTV (nur PDF/Viewer bzw. Netz ohne DTV)
+  # ============================================================================
+  hb:                     # Bremen
+    status: blocked       # nur PDF-Verkehrsmengenkarten (älter), kein Vektor-DTV
+    kind: pdf
+    url: "https://bau.bremen.de/mobilitaet/verkehrsdaten/verkehrsmengenkarten-59016"
+    year: 2010
+    license: "CC-BY-4.0"
+    metric: DTV
+
+  he:                     # Hessen
+    status: blocked       # nur interaktiver Viewer/PDF; maschinenlesbare Herausgabe verweigert
+    kind: viewer
+    url: "https://mobil.hessen.de/verkehr/interaktive-verkehrsmengenkarte"
+    year: 2021
+    license: "eingeschränkt"   # Urheberrecht (keine offene Lizenz)
+    metric: DTV
+
+  mv:                     # Mecklenburg-Vorpommern
+    status: blocked       # nur VMK-2021-PDF gefunden; WFS (Übersicht: SVZ 2015) nicht verifizierbar
+    kind: pdf
+    url: "https://www.strassen-mv.de/static/LSBV/Dateien/Downloads/Verkehrsmengenkarten/vmk2021.pdf"
+    year: 2021
+    license: "dl-de/by-2.0"
+    metric: DTV
+
+  sh:                     # Schleswig-Holstein
+    status: blocked       # WFS ist NUR Netzgeometrie (Strassennetz/Netzknoten, VNK/NNK) — kein DTV
     kind: wfs
     url: "https://service.gdi-sh.de/WFS_SH_Strasseninfo"
-    # LBV.SH (FragDenStaat-IFG-Antwort): nur Bundesfernstraßen A/B standardisiert ausgewertet;
-    # fürs L/K-Netz KEINE maschinenlesbare DTV-Datenbank (nur temporäre Messungen; VMK nur 2015).
-    # -> A/B via BASt-Backbone (TODO.md), L/K blockiert bis DTV-Tabelle mit VNK/NNK vorliegt.
+    # LBV.SH (FragDenStaat-IFG): nur Bundesfernstraßen A/B standardisiert ausgewertet; fürs L/K-Netz
+    # KEINE maschinenlesbare DTV-Datenbank (nur temporäre Messungen; VMK nur 2015 als PDF).
+    # -> A/B via BASt-Backbone; L/K blockiert, bis DTV-Tabelle mit VNK/NNK vorliegt.
     year: 2021
-    license: "CC-BY-4.0"      # © LBV.SH / CC BY 4.0
+    license: "CC-BY-4.0"  # © LBV.SH / CC BY 4.0
     metric: DTV
-  st:
-    status: live          # Netz-WFS (Geometrie, vnk/nnk) + DTV-Excel über Netzknoten gejoint
-    kind: wfs+xlsx
-    url: "https://www.geodatenportal.sachsen-anhalt.de/gfds/ws/wfs/a78d7bc1-ffbb-cf76/GDI-LSA_LSBB_STRASSENNETZE/ows.wfs"
-    values_url: "https://lsbb.sachsen-anhalt.de/fileadmin/Bibliothek/Politik_und_Verwaltung/Landesbetriebe/LSBB/Service/Strassenverkehrszaehlungen/Dateien_2025/Ergebnisse_SVZ_2021.xlsx"
-    # Adapter (st.py): 4 Netz-Klassen + Excel-Blatt Zeilenformat, Join (vnk,nnk)<->(VonNK,NachNK).
-    year: 2021
-    license: "dl-de/by-2.0"   # © Geofachdaten-DE / LSBB Sachsen-Anhalt
-    metric: DTV
-  mv:
-    status: research
-    kind: wfs
-    url: "https://www.geoportal-mv.de/"                        # WFS (SVZ 2015)
-    year: 2015
-    license: "dl-de/by-2.0"
-    metric: DTV
-  sn:
-    status: live
-    kind: zip             # GDI-SBV INSPIRE-Downloadservice: Shapefile-ZIP, EPSG:25833
-    url: "https://www.list.smwa.sachsen.de/gdi/download/DE-SN-SBV-SVZ2021.zip"
-    # Felder im Adapter (sn.py): dtv_kfzges/dtv_sv/sv_kfz/strasse/klasse(S->L)/nummer.
-    # Dienst-Alternative: geodienste.sachsen.de/wfs_list_ttsib/guest (frühere ttsib-wms-Sackgasse war falscher Pfad).
-    year: 2021
-    license: "dl-de/by-2.0"   # © Straßenbauverwaltung Sachsen
-    metric: DTV
-
-  # ====================== wms_only / blockiert (kein Vektor) ======================
-  rp:
-    status: research      # OGC API Features (ldproxy) vorhanden, aber Backend aktuell defekt
-    kind: ogcapi
-    url: "https://www.geoportal.rlp.de/spatial-objects/393"
-    # Collections: DTV_WFS:SVZ{Jahr}_Zaehlstellenbereiche (Linien + DTV);
-    # Items …/393/collections/<id>/items?f=json&limit=1000. base.fetch_ogc_features passt.
-    # Stand Juni 2026: liefert serverseitig "Wfs object could not be created from db!" -> warten.
-    year: 2021
-    license: "dl-de/by-2.0"
-    metric: DTV
-
-  # Weggelassen (nur PDF/Viewer; A/B ohnehin über BASt): HB (Bremen), HE (Hessen).

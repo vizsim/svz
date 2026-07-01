@@ -32,10 +32,11 @@ REGISTRY: dict[str, str] = {
 
 # Recherchiert, aber noch offen (Zugangsart aus SVZ_Quellen_Bundeslaender.md).
 PLANNED: dict[str, str] = {
+    "rp": "Rheinland-Pfalz — OGC API Features (393) vorhanden, Server DB-Fehler -> research",
+    "hb": "Bremen — nur PDF-Verkehrsmengenkarten -> blockiert",
+    "he": "Hessen — nur Viewer/PDF (maschinenlesbar verweigert) -> blockiert",
+    "mv": "Mecklenburg-Vorpommern — nur PDF (VMK 2021); WFS nicht verifizierbar -> blockiert",
     "sh": "Schleswig-Holstein — WFS nur Netz; L/K nicht maschinenlesbar (LBV.SH) -> blockiert",
-    "mv": "Mecklenburg-Vorpommern — WFS (SVZ 2015), dl-de/by-2.0 (prüfen)",
-    "rp": "Rheinland-Pfalz — OGC API Features (393) vorhanden, Server aktuell DB-Fehler -> warten",
-    # Nur Viewer/PDF, vorerst zurückgestellt: HB (Bremen), HE (Hessen) -> A/B via BASt.
 }
 
 # Reihenfolge für `build all` (nur implementierte).

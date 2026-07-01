@@ -150,6 +150,7 @@ function applySources() {
   const all = SOURCES.every((s) => s.el.checked);
   srcAll.checked = all;
   srcAll.indeterminate = !all && SOURCES.some((s) => s.el.checked);
+  updateZoomHints(); // Hinweiszeilen an den (Un)Check-Zustand anpassen
 }
 
 // Hinweis unter einer Quelle: dauerhaft `hint`; bei Zoom < minZoom zusätzlich der
@@ -157,6 +158,11 @@ function applySources() {
 function updateZoomHints() {
   for (const s of SOURCES) {
     if (!s.hintEl) continue;
+    if (!s.el.checked) {
+      s.hintEl.style.display = "none"; // Hinweis nur bei aktivierter Quelle
+      continue;
+    }
+    s.hintEl.style.display = "";
     const prefix = s.minZoom && map.getZoom() < s.minZoom ? `erst ab Zoom ${s.minZoom} · ` : "";
     s.hintEl.querySelector("td").textContent = prefix + (s.hint || "");
   }
