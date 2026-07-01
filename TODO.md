@@ -22,16 +22,20 @@ veröffentlichen mehrere Landes-SVZ-Datensätze **nur das nachgeordnete Netz**
 - **Berlin** liefert das städtische Hauptstraßennetz; nur ~10 A-Schnipsel (A100 etc.).
 - **BY/NI/BB/HH/BW** führen BAB historisch in ihren SVZ mit → daher die Inkonsistenz.
 
-**Lösung: BASt-Backbone ergänzen.** Die BASt (Bundesanstalt für Straßenwesen)
-veröffentlicht die bundesweite manuelle Straßenverkehrszählung für **alle
-Bundesfernstraßen (A + B)** mit DTV:
-- Einzelergebnisse als **Excel mit X/Y-Koordinaten** (ETRS89/UTM32N) → Punkt-Quelle.
-- **Bundesfernstraßennetz als WFS** (ASB, CC-BY 4.0) → Liniengeometrie.
+**Lösung: BASt-Backbone — ✅ für Autobahnen umgesetzt** ([adapters/bast.py](pipeline/src/svzkarte/adapters/bast.py)).
+Die BASt veröffentlicht die bundesweite SVZ der Bundesfernstraßen (A + B) als Excel
+mit **X/Y-Koordinaten** (ETRS89/UTM32N) → direkt als Punkte baubar. Integriert ist
+`Autobahnen-2021.xlsx` (Blatt „Zeilenformat", 2.666 Zählstellen mit Koordinaten) als
+Punkt-Quelle `bast` (`state=DE`, `source=bast`) → füllt die A-Lücke bundesweit (v.a. NW/BE).
 
-Ein eigener `bast`-Adapter würde damit **lückenlose Autobahnen überall** liefern.
-Wichtig dabei: BASt-A/B **überlappt** mit den Ländern, die A/B schon mitliefern →
-Dedup-Strategie nötig. Sauberste Aufteilung (lt. Konzept): **BASt für A (ggf. B),
-Länder fürs nachgeordnete Netz (L/K/G)** – verhindert Doppelzählung.
+Offen / bewusst weggelassen:
+- **Bundesstraßen (B)** aus der BASt bewusst NICHT integriert — die decken die Länder
+  ab (Doppelzählung). `Bundesstrassen-2021.xlsx` läge bereit, falls doch gewünscht.
+- **Dedup**: BASt-A **überlappt** mit den Ländern, die A schon mitliefern (BY/NI/BB/HH/
+  BW/SN/TH/ST). Aktuell koexistieren beide (BASt-A-Punkte + Länder-A-Linien). Saubere
+  Aufteilung wäre: BASt für A, Länder fürs nachgeordnete Netz (L/K/G) — noch offen.
+- Alternativ gäbe es das **Bundesfernstraßennetz als WFS** (Liniengeometrie) für eine
+  Linien- statt Punktdarstellung.
 
 ## Datenlücken & blockierte Länder (Doku der Recherche-Sackgassen)
 
