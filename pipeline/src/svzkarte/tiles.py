@@ -7,6 +7,7 @@ so lässt sich die Pipeline auch ohne installiertes tippecanoe prüfen.
 
 from __future__ import annotations
 
+import json
 import subprocess
 from pathlib import Path
 from shutil import which
@@ -47,6 +48,11 @@ def _profile_args(profile: dict[str, Any], layer_override: str | None = None) ->
         args.append("--force-feature-limit")
     if "maximum_tile_bytes" in profile:
         args.append(f"--maximum-tile-bytes={profile['maximum_tile_bytes']}")
+    # Per-Zoom-Feature-Filter (Mapbox-GL-Filtersyntax, $zoom verfügbar). Damit
+    # blenden wir Nebennetz mit kleiner DTV erst ab höheren Zoomstufen ein, statt
+    # bei Zoom <8 das ganze Straßennetz in wenige (zu große) Kacheln zu packen.
+    if "feature_filter" in profile:
+        args += ["-j", json.dumps(profile["feature_filter"], separators=(",", ":"))]
     # Attribut-Typen erzwingen: tippecanoe liest FlatGeobuf-Attribute sonst als
     # Strings, was data-driven styling (interpolate über dtv_kfz) bricht.
     for name, atype in profile.get("attribute_types", {}).items():

@@ -5,12 +5,24 @@
 profiles:
   svz_lines:
     layer: svz            # Frontend-Vertrag
-    minzoom: 6
+    minzoom: 5
     maxzoom: 14
     drop_rate: 0
     drop_densest_as_needed: true
     no_feature_limit: true
     no_tile_size_limit: true
+    # Abgestufte DTV-Leiter: bei niedrigem Zoom nur das Hauptnetz, sonst quetscht
+    # tippecanoe das komplette Netz aller Länder in wenige (zu große) Kacheln, die
+    # MapLibre nicht mehr lädt. Deterministischer Cut statt drop-densest-Zufall:
+    #   Zoom 5 -> DTV >= 10000 | 6 -> >= 2000 | 7 -> >= 1000 | 8+ -> alles.
+    # Features ohne dtv_kfz zählen als 0 -> erst ab Zoom 8 sichtbar.
+    feature_filter:
+      svz: &dtv_ladder
+        - any
+        - [">=", "$zoom", 8]
+        - ["all", [">=", "$zoom", 7], [">=", "dtv_kfz", 1000]]
+        - ["all", [">=", "$zoom", 6], [">=", "dtv_kfz", 2000]]
+        - [">=", "dtv_kfz", 10000]
     attribute_types:      # sonst landen die Zahlen als Strings im Tile
       dtv_kfz: int
       dtv_sv: int
@@ -19,12 +31,14 @@ profiles:
   # Punkt-Zählstellen (BW/SL). Eigener Layer-Name = Frontend-Vertrag (Kreis-Layer).
   svz_points:
     layer: svz_points
-    minzoom: 6
+    minzoom: 5
     maxzoom: 14
     drop_rate: 0
     drop_densest_as_needed: true
     no_feature_limit: true
     no_tile_size_limit: true
+    feature_filter:       # dieselbe DTV-Leiter wie svz_lines (s.o.)
+      svz_points: *dtv_ladder
     attribute_types:
       dtv_kfz: int
       dtv_sv: int
