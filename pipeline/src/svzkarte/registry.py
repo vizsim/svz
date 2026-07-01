@@ -31,7 +31,7 @@ REGISTRY: dict[str, str] = {
 
 # Recherchiert, aber noch offen (Zugangsart aus SVZ_Quellen_Bundeslaender.md).
 PLANNED: dict[str, str] = {
-    "sh": "Schleswig-Holstein — WFS, CC-BY 4.0",
+    "sh": "Schleswig-Holstein — WFS nur Netzgeometrie (kein DTV); L/K nicht maschinenlesbar (LBV.SH) -> blockiert",
     "mv": "Mecklenburg-Vorpommern — WFS (SVZ 2015), dl-de/by-2.0 (prüfen)",
     "rp": "Rheinland-Pfalz — nur WMS (kein WFS/Vektor); Service 393 defekt → zurückgestellt",
     # Nur Viewer/PDF, vorerst zurückgestellt: HB (Bremen), HE (Hessen) -> A/B via BASt.

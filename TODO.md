@@ -33,12 +33,31 @@ Wichtig dabei: BASt-A/B **überlappt** mit den Ländern, die A/B schon mitliefer
 Dedup-Strategie nötig. Sauberste Aufteilung (lt. Konzept): **BASt für A (ggf. B),
 Länder fürs nachgeordnete Netz (L/K/G)** – verhindert Doppelzählung.
 
-## Punkt-Quellen (in Arbeit)
-- BW (`DTV2024`, mobidata-bw GeoJSON) und SL (`SVZ_Zaehlstellen`, ArcGIS-WFS) sind
-  **Punkt**-Zählstellen → eigener `svz_points`-Layer (Pipeline + Frontend-Kreislayer).
+## Datenlücken & blockierte Länder (Doku der Recherche-Sackgassen)
+
+Ein wiederkehrendes Muster: manche Länder veröffentlichen nur **Netzgeometrie**
+(Straßennetz/Netzknoten) ohne DTV, oder die DTV nur als **PDF/Viewer** — dann fehlt
+eine maschinenlesbare Werte-Tabelle zum Join.
+
+- **Schleswig-Holstein (SH)** — WFS `WFS_SH_Strasseninfo` ist **nur Netzgeometrie**
+  (`Strassennetz`/`Netzknoten`, Schlüssel VNK/NNK), **kein DTV-FeatureType**. Laut
+  LBV.SH selbst (IFG-Antwort auf [FragDenStaat](https://fragdenstaat.de/anfrage/zaehlstellen-zaehlstellenkarte-verkehrsmengenkarte/)):
+  nur **Bundesfernstraßen (A/B)** werden standardisiert ausgewertet; fürs **Landes-/
+  Kreisnetz existiert KEINE maschinenlesbare DTV-Datenbank** (nur temporäre,
+  unkalibrierte Messungen; Verkehrsmengenkarte nur 2015; Rest via BASt-Statistik).
+  → L/K blockiert; A/B nur über den BASt-Backbone (s. oben).
+- **Rheinland-Pfalz (RP)** — OGC API Features (`spatial-objects/393`, Collections
+  `DTV_WFS:SVZ{Jahr}_Zaehlstellenbereiche`) existiert, liefert aber serverseitig
+  konstant „Wfs object could not be created from db!" → warten, bis der Dienst läuft.
+- **Mecklenburg-Vorpommern (MV)** — WFS/SVZ-Endpunkt noch nicht verifiziert (offen).
+- **Bremen (HB) / Hessen (HE)** — nur PDF/Viewer, keine maschinenlesbaren Vektor-DTV.
+
+Gemeinsamer Ausweg für all diese: der **BASt-Backbone** deckt A/B bundesweit ab; das
+nachgeordnete Netz (L/K) bleibt bei diesen Ländern lückenhaft, bis eine DTV-Tabelle
+(mit VNK/NNK oder Zählstellennr) auftaucht — dann Join wie bei ST/TH.
 
 ## Sonstiges
+- Punkt-Quellen erledigt: BW + SL als eigener `svz_points`-Layer (Kreis-Layer im Frontend).
 - Frontend: Filter-UI (Jahr / Bundesland / Klasse / Metrik DTV vs. DTVw getrennt).
 - Datenkuriosum HH: ein BAB-Segment mit `dtv=1.240.000` (Quell-Ausreißer) – ggf. kappen.
 - Deploy/CI noch offen (B2 vs. GitHub Pages/Release).
-- Offene Länder: TH, SH, ST, MV (WFS gesucht); SN/RP nur WMS (blockiert).

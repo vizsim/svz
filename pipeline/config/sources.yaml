@@ -93,11 +93,14 @@ sources:
 
   # ====================== research (Endpunkt noch zu finden) ======================
   sh:
-    status: research
+    status: blocked       # WFS ist NUR Netzgeometrie (Strassennetz/Netzknoten, VNK/NNK) — KEIN DTV.
     kind: wfs
-    url: "https://geoportal.de/Metadata/4db88cf7-23d6-4207-a3da-8ab1a94508ba"
+    url: "https://service.gdi-sh.de/WFS_SH_Strasseninfo"
+    # LBV.SH (FragDenStaat-IFG-Antwort): nur Bundesfernstraßen A/B standardisiert ausgewertet;
+    # fürs L/K-Netz KEINE maschinenlesbare DTV-Datenbank (nur temporäre Messungen; VMK nur 2015).
+    # -> A/B via BASt-Backbone (TODO.md), L/K blockiert bis DTV-Tabelle mit VNK/NNK vorliegt.
     year: 2021
-    license: "CC-BY-4.0"
+    license: "CC-BY-4.0"      # © LBV.SH / CC BY 4.0
     metric: DTV
   st:
     status: live          # Netz-WFS (Geometrie, vnk/nnk) + DTV-Excel über Netzknoten gejoint
