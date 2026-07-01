@@ -5,6 +5,10 @@
 // Alle Daten-Layer hängen UNTER der ersten Symbol-(Label-)Ebene -> Labels oben.
 const PMTILES_URL = "pipeline/data/svz/svz_de.pmtiles";
 const BAST_PMTILES_URL = "pipeline/data/svz/svz_bast.pmtiles";
+// UBA-Hauptverkehrsstraßen (END 2021, bundesweit) – gehostet aus unfallkarte, als
+// Fallback/Backbone. Attribut annualTrafficFlow (Kfz/Jahr), Layer `lines`.
+const HVS_PMTILES_URL =
+  "https://tiles.vizsim.de/file/unfallkarte-data-v2/uba/hvs_verkehrsmengen.pmtiles";
 
 // Farbskala: niedrig (grün) -> hoch (rot). Ein Array für Layer-Paint UND Legende.
 const SCALE = [
@@ -40,7 +44,8 @@ const SOURCES = [
   { code: "SN", name: "Sachsen", year: 2021, metric: "DTV", license: "dl-de/by-2.0", kind: "land" },
   { code: "ST", name: "Sachsen-Anhalt", year: 2021, metric: "DTV", license: "dl-de/by-2.0", kind: "land" },
   { code: "TH", name: "Thüringen", year: 2015, metric: "DTV", license: "dl-de/by-2.0", kind: "land" },
-  { code: "DE", name: "BASt-Backbone (A+B)", year: 2021, metric: "DTV", license: "© BASt", kind: "bast" },
+  { code: "DE", name: "BASt-Backbone (A+B)", year: 2021, metric: "DTV", license: "© BASt", kind: "bast", layer: "bast-points" },
+  { code: "HVS", name: "UBA-Hauptverkehrsstraßen", year: 2021, metric: "DTV≈", license: "© UBA", kind: "hvs", layer: "hvs-lines", default: false, minZoom: 9, hint: "nur Straßen > 3 Mio Kfz/Jahr" },
 ];
 
 // pmtiles-Protokoll registrieren.
@@ -52,6 +57,11 @@ const NODATA = "#b4b4b4";
 const interp = ["interpolate", ["linear"], ["get", "dtv_kfz"]];
 for (const [v, c] of SCALE) interp.push(v, c);
 const colorExpr = ["case", ["has", "dtv_kfz"], interp, NODATA];
+
+// UBA-HVS trägt annualTrafficFlow (Kfz/Jahr) -> als DTV-Äquivalent (÷365) einfärben.
+const hvsInterp = ["interpolate", ["linear"], ["/", ["to-number", ["get", "annualTrafficFlow"]], 365]];
+for (const [v, c] of SCALE) hvsInterp.push(v, c);
+const hvsColorExpr = ["case", ["has", "annualTrafficFlow"], hvsInterp, NODATA];
 
 // Basemap: gehosteter OpenFreeMap-Positron-Style (keyless, kein lokales style.json).
 const map = new maplibregl.Map({
@@ -90,6 +100,7 @@ for (const s of SOURCES) {
     `<td class="src-metric">${s.metric}</td>` +
     `<td class="src-lic">${licenseCell(s.license)}</td>`;
   const cb = tr.querySelector("input");
+  cb.checked = s.default !== false; // HVS startet ausgeblendet (default:false)
   s.el = cb;
   cb.addEventListener("change", applySources);
   tr.addEventListener("click", (e) => {
@@ -97,7 +108,15 @@ for (const s of SOURCES) {
     cb.checked = !cb.checked;
     applySources();
   });
-  (s.kind === "bast" ? srcBastBody : srcList).append(tr);
+  const parent = s.kind === "land" ? srcList : srcBastBody; // Backbones (BASt, HVS) unten
+  parent.append(tr);
+  if (s.hint) {
+    const ht = document.createElement("tr");
+    ht.className = "src-hint";
+    ht.innerHTML = `<td colspan="5"></td>`;
+    parent.append(ht);
+    s.hintEl = ht;
+  }
 }
 
 srcAll.addEventListener("change", () => {
@@ -122,12 +141,28 @@ function applySources() {
   for (const id of ["svz-lines", "svz-points"]) {
     if (map.getLayer(id)) map.setFilter(id, filt);
   }
-  const bast = SOURCES.find((s) => s.kind === "bast");
-  if (map.getLayer("bast-points")) {
-    map.setLayoutProperty("bast-points", "visibility", bast.el.checked ? "visible" : "none");
+  // Backbone-Layer (BASt-Punkte, UBA-HVS-Linien) je Checkbox schalten.
+  for (const s of SOURCES) {
+    if (s.layer && map.getLayer(s.layer)) {
+      map.setLayoutProperty(s.layer, "visibility", s.el.checked ? "visible" : "none");
+    }
   }
-  srcAll.checked = SOURCES.every((s) => s.el.checked);
+  const all = SOURCES.every((s) => s.el.checked);
+  srcAll.checked = all;
+  srcAll.indeterminate = !all && SOURCES.some((s) => s.el.checked);
 }
+
+// Hinweis unter einer Quelle: dauerhaft `hint`; bei Zoom < minZoom zusätzlich der
+// „erst ab Zoom N"-Vorsatz (z.B. UBA-HVS: nur >3 Mio Kfz/Jahr, erst ab Zoom 9).
+function updateZoomHints() {
+  for (const s of SOURCES) {
+    if (!s.hintEl) continue;
+    const prefix = s.minZoom && map.getZoom() < s.minZoom ? `erst ab Zoom ${s.minZoom} · ` : "";
+    s.hintEl.querySelector("td").textContent = prefix + (s.hint || "");
+  }
+}
+map.on("zoom", updateZoomHints);
+updateZoomHints();
 
 map.on("load", () => {
   map.addSource("svz", {
@@ -206,6 +241,33 @@ map.on("load", () => {
     firstSymbol,
   );
 
+  // UBA-Hauptverkehrsstraßen (bundesweit, END 2021) als Fallback/Backbone — eigene,
+  // gehostete Quelle, initial aus. Unter die Länder-Linien gelegt (Länderdaten oben).
+  map.addSource("hvs", {
+    type: "vector",
+    url: "pmtiles://" + HVS_PMTILES_URL,
+    attribution:
+      'Hauptverkehrsstraßen: © <a href="https://gis.uba.de/maps/resources/apps/laermkartierung/index.html?lang=de" target="_blank" rel="noopener">UBA</a> (END 2021)',
+  });
+  map.addLayer(
+    {
+      id: "hvs-lines",
+      type: "line",
+      source: "hvs",
+      "source-layer": "lines",
+      layout: { "line-cap": "round", "line-join": "round", visibility: "none" },
+      paint: {
+        "line-color": hvsColorExpr,
+        "line-opacity": 0.9,
+        "line-width": [
+          "interpolate", ["linear"], ["zoom"],
+          6, 1.0, 9, 1.8, 13, 3.5, 16, 7,
+        ],
+      },
+    },
+    "svz-lines",
+  );
+
   // Initiale Quellen-Sichtbarkeit setzen (Layer existieren jetzt).
   applySources();
 
@@ -213,6 +275,19 @@ map.on("load", () => {
   const fmt = (n) => (n == null ? "–" : Number(n).toLocaleString("de-DE"));
   const onClick = (e) => {
     const p = e.features[0].properties;
+    // UBA-Hauptverkehrsstraßen: annualTrafficFlow (Kfz/Jahr) -> DTV-Äquivalent (÷365).
+    if (p.annualTrafficFlow != null) {
+      const flow = Number(p.annualTrafficFlow);
+      new maplibregl.Popup({ closeButton: false })
+        .setLngLat(e.lngLat)
+        .setHTML(
+          `<div class="popup-road">Hauptverkehrsstraße</div>` +
+          `<div class="popup-dtv">${fmt(Math.round(flow / 365))} Kfz/24h <span class="popup-meta">(DTV≈)</span></div>` +
+          `<div class="popup-meta">${fmt(flow)} Kfz/Jahr · © UBA · END 2021</div>`,
+        )
+        .addTo(map);
+      return;
+    }
     const road = p.road_no || `${p.road_class}-Straße`;
     const sv =
       p.dtv_sv != null
@@ -234,7 +309,7 @@ map.on("load", () => {
       )
       .addTo(map);
   };
-  for (const id of ["svz-lines", "svz-points", "bast-points"]) {
+  for (const id of ["svz-lines", "svz-points", "bast-points", "hvs-lines"]) {
     map.on("click", id, onClick);
     map.on("mouseenter", id, () => (map.getCanvas().style.cursor = "pointer"));
     map.on("mouseleave", id, () => (map.getCanvas().style.cursor = ""));

@@ -4,7 +4,7 @@ body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
 
 #title {
   position: absolute; top: 12px; left: 12px; z-index: 2;
-  background: rgba(255,255,255,0.92); padding: 10px 14px; border-radius: 8px;
+  background: rgba(255,255,255,0.97); padding: 10px 14px; border-radius: 8px;
   box-shadow: 0 1px 4px rgba(0,0,0,0.25);
 }
 #title h1 { font-size: 18px; font-weight: 700; color: #1a1a1a; }
@@ -14,7 +14,7 @@ body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
   background: none; border: none; padding: 0; cursor: pointer;
   font: inherit; font-size: 12px; font-weight: 600; color: #333;
 }
-#sources-body { margin-top: 6px; max-height: 48vh; overflow-y: auto; }
+#sources-body { margin-top: 6px; max-height: 55vh; overflow-y: auto; overflow-x: hidden; }
 .src-all {
   display: flex; align-items: center; gap: 6px; font-size: 12px;
   font-weight: 600; color: #222; margin-bottom: 6px;
@@ -40,6 +40,11 @@ body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
 /* BASt-Backbone unten abgesetzt (kein Bundesland). */
 tbody.bast-body td { border-top: 1px solid #d5d5d5; padding-top: 5px; }
 tbody.bast-body .src-name { font-style: italic; color: #444; }
+/* die src-hint-Zeile darunter hat keine eigene Trennlinie */
+tbody.bast-body tr.src-hint td { border-top: none; padding-top: 0; }
+
+/* kleiner Hinweis unter einer Quelle (z.B. UBA-HVS: >3 Mio Kfz/Jahr, ab Zoom 9) */
+tr.src-hint td { padding: 0 0 4px 24px; font-size: 10px; color: #a8a8a8; font-style: italic; }
 
 .src-details { margin-top: 7px; font-size: 11px; }
 .src-details a { color: #4576c4; text-decoration: none; }
@@ -47,7 +52,7 @@ tbody.bast-body .src-name { font-style: italic; color: #444; }
 
 #legend {
   position: absolute; bottom: 22px; left: 12px; z-index: 2;
-  background: rgba(255,255,255,0.94); padding: 10px 12px; border-radius: 8px;
+  background: rgba(255,255,255,0.97); padding: 10px 12px; border-radius: 8px;
   box-shadow: 0 1px 4px rgba(0,0,0,0.25); min-width: 190px;
 }
 .legend-title { font-size: 12px; font-weight: 600; margin-bottom: 8px; color: #222; }
