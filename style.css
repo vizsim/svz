@@ -9,12 +9,41 @@ body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
 }
 #title h1 { font-size: 18px; font-weight: 700; color: #1a1a1a; }
 #title p { font-size: 12px; color: #555; margin-top: 2px; }
-#toggle-bast-label {
-  display: flex; align-items: center; gap: 6px; margin-top: 8px;
-  font-size: 12px; color: #333; cursor: pointer;
-  border-top: 1px solid #e5e5e5; padding-top: 8px;
+#sources { margin-top: 8px; border-top: 1px solid #e5e5e5; padding-top: 6px; }
+#sources-toggle {
+  background: none; border: none; padding: 0; cursor: pointer;
+  font: inherit; font-size: 12px; font-weight: 600; color: #333;
 }
-#toggle-bast-label input { cursor: pointer; }
+#sources-body { margin-top: 6px; max-height: 48vh; overflow-y: auto; }
+.src-all {
+  display: flex; align-items: center; gap: 6px; font-size: 12px;
+  font-weight: 600; color: #222; margin-bottom: 6px;
+}
+.src-all input { cursor: pointer; }
+
+#sources-table { border-collapse: collapse; width: 100%; font-size: 12px; color: #333; }
+#sources-table thead th {
+  font-size: 10px; font-weight: 600; color: #999; text-align: left;
+  padding: 0 8px 3px 0; border-bottom: 1px solid #eee;
+}
+.src-row { cursor: pointer; }
+.src-row:hover { background: #f2f6fb; }
+.src-row td { padding: 2px 8px 2px 0; white-space: nowrap; }
+.src-row td:first-child { padding-right: 4px; }
+.src-row input { cursor: pointer; vertical-align: middle; }
+.src-year { color: #555; font-variant-numeric: tabular-nums; }
+.src-metric { color: #777; }
+.src-lic a { color: #4576c4; text-decoration: none; }
+.src-lic a:hover { text-decoration: underline; }
+.src-lic-plain { color: #999; }
+
+/* BASt-Backbone unten abgesetzt (kein Bundesland). */
+tbody.bast-body td { border-top: 1px solid #d5d5d5; padding-top: 5px; }
+tbody.bast-body .src-name { font-style: italic; color: #444; }
+
+.src-details { margin-top: 7px; font-size: 11px; }
+.src-details a { color: #4576c4; text-decoration: none; }
+.src-details a:hover { text-decoration: underline; }
 
 #legend {
   position: absolute; bottom: 22px; left: 12px; z-index: 2;

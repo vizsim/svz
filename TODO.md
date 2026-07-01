@@ -22,20 +22,23 @@ veröffentlichen mehrere Landes-SVZ-Datensätze **nur das nachgeordnete Netz**
 - **Berlin** liefert das städtische Hauptstraßennetz; nur ~10 A-Schnipsel (A100 etc.).
 - **BY/NI/BB/HH/BW** führen BAB historisch in ihren SVZ mit → daher die Inkonsistenz.
 
-**Lösung: BASt-Backbone — ✅ für Autobahnen umgesetzt** ([adapters/bast.py](pipeline/src/svzkarte/adapters/bast.py)).
-Die BASt veröffentlicht die bundesweite SVZ der Bundesfernstraßen (A + B) als Excel
-mit **X/Y-Koordinaten** (ETRS89/UTM32N) → direkt als Punkte baubar. Integriert ist
-`Autobahnen-2021.xlsx` (Blatt „Zeilenformat", 2.666 Zählstellen mit Koordinaten) als
-Punkt-Quelle `bast` (`state=DE`, `source=bast`) → füllt die A-Lücke bundesweit (v.a. NW/BE).
+**Lösung: BASt-Backbone — ✅ umgesetzt (A + B)** ([adapters/bast.py](pipeline/src/svzkarte/adapters/bast.py)).
+Die BASt veröffentlicht die bundesweite SVZ der Bundesfernstraßen als Excel mit
+**X/Y-Koordinaten** (ETRS89/UTM32N) → direkt als Punkte baubar. Integriert sind
+`Autobahnen-2021.xlsx` + `Bundesstrassen-2021.xlsx` (Blatt „Zeilenformat", zusammen
+**11.950 Zählstellen** mit Koordinaten) als Punkt-Quelle `bast` (`state=DE`,
+`source=bast`) → füllt die A-Lücke bundesweit (v.a. NW/BE). Ausgespielt in ein
+**eigenes `svz_bast.pmtiles`** (Layer `bast`), im Frontend per Toggle ein-/ausblendbar.
 
-Offen / bewusst weggelassen:
-- **Bundesstraßen (B)** aus der BASt bewusst NICHT integriert — die decken die Länder
-  ab (Doppelzählung). `Bundesstrassen-2021.xlsx` läge bereit, falls doch gewünscht.
-- **Dedup**: BASt-A **überlappt** mit den Ländern, die A schon mitliefern (BY/NI/BB/HH/
-  BW/SN/TH/ST). Aktuell koexistieren beide (BASt-A-Punkte + Länder-A-Linien). Saubere
-  Aufteilung wäre: BASt für A, Länder fürs nachgeordnete Netz (L/K/G) — noch offen.
+Offen:
+- **Dedup**: BASt **überlappt** mit den Ländern, die A/B schon mitliefern (v.a. B ist
+  bei allen Linien-Ländern dabei). Aktuell koexistieren beide, aber der BASt-Layer ist
+  wegschaltbar. Saubere Aufteilung wäre: BASt für A/B, Länder fürs nachgeordnete Netz
+  (L/K/G) — noch offen.
 - Alternativ gäbe es das **Bundesfernstraßennetz als WFS** (Liniengeometrie) für eine
   Linien- statt Punktdarstellung.
+- ✅ **Quellen-Panel** im Frontend gebaut (ausklappbar, pro Quelle ein-/ausblenden via
+  state-Filter bzw. BASt-Visibility, „alle an/aus").
 
 ## Datenlücken & blockierte Länder (Doku der Recherche-Sackgassen)
 

@@ -17,6 +17,32 @@ const SCALE = [
   [60000, "#d73027"],
 ];
 
+// Lizenz-Kürzel -> Volltext-URL (für den Hyperlink im Panel).
+const LICENSES = {
+  "dl-de/by-2.0": "https://www.govdata.de/dl-de/by-2-0",
+  "dl-de/zero-2.0": "https://www.govdata.de/dl-de/zero-2-0",
+  "CC-BY-4.0": "https://creativecommons.org/licenses/by/4.0/",
+  offen: null,
+};
+
+// Quellen für das Panel (Reihenfolge = Anzeige). `code` = state-Feld in den Daten;
+// `kind` steuert das Toggle: Länder filtern die geteilten Layer nach state, BASt ist
+// ein eigener Layer (Visibility). Berlin ist DTVw (nur Werktage).
+const SOURCES = [
+  { code: "BW", name: "Baden-Württemberg", year: 2024, metric: "DTV", license: "dl-de/by-2.0", kind: "land" },
+  { code: "BY", name: "Bayern", year: 2021, metric: "DTV", license: "CC-BY-4.0", kind: "land" },
+  { code: "BE", name: "Berlin", year: 2023, metric: "DTVw", license: "dl-de/zero-2.0", kind: "land" },
+  { code: "BB", name: "Brandenburg", year: 2021, metric: "DTV", license: "dl-de/by-2.0", kind: "land" },
+  { code: "HH", name: "Hamburg", year: 2019, metric: "DTV", license: "dl-de/by-2.0", kind: "land" },
+  { code: "NI", name: "Niedersachsen", year: 2021, metric: "DTV", license: "dl-de/by-2.0", kind: "land" },
+  { code: "NW", name: "Nordrhein-Westfalen", year: 2019, metric: "DTV", license: "dl-de/by-2.0", kind: "land" },
+  { code: "SL", name: "Saarland", year: 2021, metric: "DTV", license: "offen", kind: "land" },
+  { code: "SN", name: "Sachsen", year: 2021, metric: "DTV", license: "dl-de/by-2.0", kind: "land" },
+  { code: "ST", name: "Sachsen-Anhalt", year: 2021, metric: "DTV", license: "dl-de/by-2.0", kind: "land" },
+  { code: "TH", name: "Thüringen", year: 2015, metric: "DTV", license: "dl-de/by-2.0", kind: "land" },
+  { code: "DE", name: "BASt-Backbone (A+B)", year: 2021, metric: "DTV", license: "CC-BY-4.0", kind: "bast" },
+];
+
 // pmtiles-Protokoll registrieren.
 const protocol = new pmtiles.Protocol();
 maplibregl.addProtocol("pmtiles", protocol.tile);
@@ -41,6 +67,67 @@ window.map = map;
 
 map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
 map.addControl(new maplibregl.ScaleControl({ unit: "metric" }), "bottom-right");
+
+// --- Quellen-Panel (Tabelle: Land · Jahr · Metrik · Lizenz; ein-/ausblenden je Quelle) ---
+const srcAll = document.getElementById("src-all");
+const srcList = document.getElementById("sources-list");        // Länder
+const srcBastBody = document.getElementById("sources-bast-body"); // BASt, abgesetzt
+
+const licenseCell = (code) => {
+  const url = LICENSES[code];
+  return url
+    ? `<a href="${url}" target="_blank" rel="noopener">${code}</a>`
+    : `<span class="src-lic-plain">${code}</span>`;
+};
+
+for (const s of SOURCES) {
+  const tr = document.createElement("tr");
+  tr.className = "src-row";
+  tr.innerHTML =
+    `<td><input type="checkbox" checked></td>` +
+    `<td class="src-name">${s.name}</td>` +
+    `<td class="src-year">${s.year}</td>` +
+    `<td class="src-metric">${s.metric}</td>` +
+    `<td class="src-lic">${licenseCell(s.license)}</td>`;
+  const cb = tr.querySelector("input");
+  s.el = cb;
+  cb.addEventListener("change", applySources);
+  tr.addEventListener("click", (e) => {
+    if (e.target.closest("a") || e.target === cb) return; // Lizenz-Link/Checkbox nicht abfangen
+    cb.checked = !cb.checked;
+    applySources();
+  });
+  (s.kind === "bast" ? srcBastBody : srcList).append(tr);
+}
+
+srcAll.addEventListener("change", () => {
+  for (const s of SOURCES) s.el.checked = srcAll.checked;
+  applySources();
+});
+
+// Ein-/Ausklappen des Panels.
+const srcToggle = document.getElementById("sources-toggle");
+const srcBody = document.getElementById("sources-body");
+srcToggle.addEventListener("click", () => {
+  const open = srcBody.style.display !== "none";
+  srcBody.style.display = open ? "none" : "block";
+  srcToggle.textContent = open ? "Quellen ▸" : "Quellen ▾";
+  srcToggle.setAttribute("aria-expanded", String(!open));
+});
+
+// Länder filtern die geteilten Layer nach `state`; BASt schaltet seinen eigenen Layer.
+function applySources() {
+  const states = SOURCES.filter((s) => s.kind === "land" && s.el.checked).map((s) => s.code);
+  const filt = ["in", ["get", "state"], ["literal", states]];
+  for (const id of ["svz-lines", "svz-points"]) {
+    if (map.getLayer(id)) map.setFilter(id, filt);
+  }
+  const bast = SOURCES.find((s) => s.kind === "bast");
+  if (map.getLayer("bast-points")) {
+    map.setLayoutProperty("bast-points", "visibility", bast.el.checked ? "visible" : "none");
+  }
+  srcAll.checked = SOURCES.every((s) => s.el.checked);
+}
 
 map.on("load", () => {
   map.addSource("svz", {
@@ -108,7 +195,7 @@ map.on("load", () => {
       paint: {
         "circle-color": colorExpr,
         "circle-opacity": 0.9,
-        "circle-stroke-color": "#333333",
+        "circle-stroke-color": "#ffffff",
         "circle-stroke-width": 0.7,
         "circle-radius": [
           "interpolate", ["linear"], ["zoom"],
@@ -119,14 +206,8 @@ map.on("load", () => {
     firstSymbol,
   );
 
-  // Toggle „BASt-Backbone anzeigen" verdrahten.
-  const bastToggle = document.getElementById("toggle-bast");
-  if (bastToggle) {
-    const apply = () =>
-      map.setLayoutProperty("bast-points", "visibility", bastToggle.checked ? "visible" : "none");
-    bastToggle.addEventListener("change", apply);
-    apply();
-  }
+  // Initiale Quellen-Sichtbarkeit setzen (Layer existieren jetzt).
+  applySources();
 
   // Klick-Popup + Cursor für alle Daten-Layer.
   const fmt = (n) => (n == null ? "–" : Number(n).toLocaleString("de-DE"));

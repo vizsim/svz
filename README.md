@@ -6,7 +6,8 @@ Excel), bringt sie in **ein kanonisches Schema**, mergt sie und tilet sie zu **e
 `svz_de.pmtiles`**, die ein **MapLibre-Viewer** ([index.html](index.html)) auf
 OpenFreeMap-Positron rendert. Pipeline + CLI: siehe [pipeline/README.md](pipeline/README.md).
 
-**Stand: 11 Länder + BASt-Autobahn-Backbone · 57.046 Segmente/Zählstellen** (Linien + Punkte). Kanonische
+**Stand: 11 Länder + BASt-Backbone (A+B) · 66.330 Segmente/Zählstellen** (Linien + Punkte;
+Länder in `svz_de.pmtiles`, BASt separat schaltbar in `svz_bast.pmtiles`). Kanonische
 Felder je Feature: `dtv_kfz`, `dtv_sv`, `sv_anteil`, `metric` (DTV/DTVw), `year`,
 `road_class` (A/B/L/K/G), `road_no`, `station_id`, `state`, `source`, `license`.
 
@@ -32,9 +33,10 @@ Format vor.
 Seit Gründung der **Autobahn GmbH des Bundes (2021)** sind die Länder **nicht mehr für
 die Autobahnen zuständig** – einige veröffentlichen die **Autobahn-Daten deshalb nicht
 mehr** (z.B. NRW gar keine, Berlin nur Reste). Diese Lücke schließt der
-**BASt-Backbone**: die bundesweite BASt-SVZ 2021 der **Autobahnen** ist als Punkte
-(mit DTV, aus den X/Y-Koordinaten der Zählstellen) integriert. Bundesstraßen bleiben
-bei den Ländern (Doppelzählung vermeiden); Details in [TODO.md](TODO.md).
+**BASt-Backbone**: die bundesweite BASt-SVZ 2021 der **Bundesfernstraßen (A + B)** ist
+als Punkte (mit DTV, aus den X/Y-Koordinaten der Zählstellen) integriert – in einem
+**eigenen, im Frontend ein-/ausblendbaren** `svz_bast.pmtiles`, sodass die Überlappung
+mit den Länder-Daten (v.a. bei den Bundesstraßen) wegschaltbar bleibt. Details in [TODO.md](TODO.md).
 
 ## Datenquellen der 16 Bundesländer
 
@@ -59,7 +61,7 @@ Legende Status: ✅ live (implementiert) · 🔍 offen (Endpunkt gesucht) · ⛔
 | **Sachsen-Anhalt** (ST) | ✅ | [WFS](https://www.geodatenportal.sachsen-anhalt.de/gfds/ws/wfs/a78d7bc1-ffbb-cf76/GDI-LSA_LSBB_STRASSENNETZE/ows.wfs) + [Excel](https://lsbb.sachsen-anhalt.de/fileadmin/Bibliothek/Politik_und_Verwaltung/Landesbetriebe/LSBB/Service/Strassenverkehrszaehlungen/Dateien_2025/Ergebnisse_SVZ_2021.xlsx) | Linien | 2021 | DTV | dl-de/by-2.0 | 1.145 | **Netz-WFS × DTV-Excel** über Netzknoten `(VonNK,NachNK)` gejoint (WFS = nur Geometrie). |
 | **Schleswig-Holstein** (SH) | ⛔ | [WFS](https://service.gdi-sh.de/WFS_SH_Strasseninfo) | – | 2021 | DTV | CC-BY-4.0 | – | WFS **nur Netzgeometrie**. Fürs L/K-Netz **keine maschinenlesbare DTV** (LBV.SH lt. [FragDenStaat](https://fragdenstaat.de/anfrage/zaehlstellen-zaehlstellenkarte-verkehrsmengenkarte/)); nur eine **[Verkehrsmengenkarte 2015 als PDF](https://schleswig-holstein.de/mm/downloads/LBVSH/Aufgaben/Strassenbau/verkehrsmengenkarte2015.pdf)**; A/B nur über BASt. |
 | **Thüringen** (TH) | ✅ | [WFS](https://www.geoproxy.geoportal-th.de/geoproxy/services/STRNETZ_SVZ_wfs) | Linien | 2015 | DTV | dl-de/by-2.0 | 2.276 | **WFS 1.1.0** (nicht 2.0!); Zählstellenbereiche-Linien × Verkehrsmengen-Werte über `(zst_nr,von_stat,bis_stat)` gejoint. |
-| **Bund – BASt** (Autobahnen) | ✅ | [Excel](https://www.bast.de/DE/Publikationen/Statistik/Verkehrsdaten/2021/Autobahnen-2021.xlsx?__blob=publicationFile&v=1) | Punkte | 2021 | DTV | CC-BY-4.0 | 2.666 | **Bundesweiter Autobahn-Backbone** (X/Y-Koordinaten, UTM32N) → füllt die A-Lücke (NW/BE); `state=DE`, `source=bast`. Bundesstraßen bewusst weggelassen. |
+| **Bund – BASt** (A+B) | ✅ | [Excel A](https://www.bast.de/DE/Publikationen/Statistik/Verkehrsdaten/2021/Autobahnen-2021.xlsx?__blob=publicationFile&v=1) · [Excel B](https://www.bast.de/DE/Publikationen/Statistik/Verkehrsdaten/2021/Bundesstrassen-2021.xlsx?__blob=publicationFile&v=1) | Punkte | 2021 | DTV | CC-BY-4.0 | 11.950 | **Bundesweiter Backbone** (Bundesfernstraßen A+B, X/Y-Koordinaten UTM32N) → füllt die A-Lücke (NW/BE); `state=DE`, `source=bast`. Eigenes **`svz_bast.pmtiles`, im Frontend separat schaltbar**. |
 
 Blockierte/offene Länder sind in [TODO.md](TODO.md) detailliert. Ein wiederkehrendes
 Muster: einige Länder liefern nur **Netzgeometrie ohne DTV** (SH, ST-WFS) oder DTV nur
