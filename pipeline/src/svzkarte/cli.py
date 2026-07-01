@@ -67,11 +67,11 @@ def merge() -> None:
 def tiles(
     dry_run: bool = typer.Option(False, "--dry-run", help="Kommandos nur zeigen"),
 ) -> None:
-    """svz_lines.fgb + svz_points.fgb -> data/svz/svz_de.pmtiles (Layer `svz` + `svz_points`)."""
+    """svz_de.pmtiles (Länder: `svz` + `svz_points`) + svz_bast.pmtiles (Backbone: `bast`)."""
     from svzkarte import tiles as tiles_mod
 
-    res = tiles_mod.build_svz(dry_run=dry_run)
-    typer.secho(f"PMTiles: {res}", fg=typer.colors.GREEN)
+    for name, path in tiles_mod.build_svz(dry_run=dry_run).items():
+        typer.secho(f"PMTiles {name}: {path}", fg=typer.colors.GREEN)
 
 
 @app.command()

@@ -1,7 +1,10 @@
-// Verkehrsmengenkarte – MapLibre-Viewer für svz_de.pmtiles.
-// Basemap: lokales OpenFreeMap-Positron-style.json (keyless). Die svz-Linien werden
-// UNTER die erste Symbol-(Label-)Ebene gehängt -> Orts-/Straßennamen bleiben oben.
+// Verkehrsmengenkarte – MapLibre-Viewer.
+// Basemap: gehostetes OpenFreeMap-Positron. Daten in ZWEI PMTiles/Quellen:
+//   svz  = Länder (Layer `svz` Linien + `svz_points` Punkte)
+//   bast = bundesweiter BASt-Backbone (Layer `bast`, A+B), separat schaltbar.
+// Alle Daten-Layer hängen UNTER der ersten Symbol-(Label-)Ebene -> Labels oben.
 const PMTILES_URL = "pipeline/data/svz/svz_de.pmtiles";
+const BAST_PMTILES_URL = "pipeline/data/svz/svz_bast.pmtiles";
 
 // Farbskala: niedrig (grün) -> hoch (rot). Ein Array für Layer-Paint UND Legende.
 const SCALE = [
@@ -90,7 +93,42 @@ map.on("load", () => {
     firstSymbol,
   );
 
-  // Klick-Popup + Cursor für beide Layer.
+  // BASt-Backbone (Bundesfernstraßen A+B) als eigene Quelle/Layer -> separat schaltbar.
+  map.addSource("bast", {
+    type: "vector",
+    url: "pmtiles://" + BAST_PMTILES_URL,
+    attribution: "Bundesfernstraßen: © BASt",
+  });
+  map.addLayer(
+    {
+      id: "bast-points",
+      type: "circle",
+      source: "bast",
+      "source-layer": "bast",
+      paint: {
+        "circle-color": colorExpr,
+        "circle-opacity": 0.9,
+        "circle-stroke-color": "#333333",
+        "circle-stroke-width": 0.7,
+        "circle-radius": [
+          "interpolate", ["linear"], ["zoom"],
+          6, 2, 10, 4, 14, 7,
+        ],
+      },
+    },
+    firstSymbol,
+  );
+
+  // Toggle „BASt-Backbone anzeigen" verdrahten.
+  const bastToggle = document.getElementById("toggle-bast");
+  if (bastToggle) {
+    const apply = () =>
+      map.setLayoutProperty("bast-points", "visibility", bastToggle.checked ? "visible" : "none");
+    bastToggle.addEventListener("change", apply);
+    apply();
+  }
+
+  // Klick-Popup + Cursor für alle Daten-Layer.
   const fmt = (n) => (n == null ? "–" : Number(n).toLocaleString("de-DE"));
   const onClick = (e) => {
     const p = e.features[0].properties;
@@ -115,7 +153,7 @@ map.on("load", () => {
       )
       .addTo(map);
   };
-  for (const id of ["svz-lines", "svz-points"]) {
+  for (const id of ["svz-lines", "svz-points", "bast-points"]) {
     map.on("click", id, onClick);
     map.on("mouseenter", id, () => (map.getCanvas().style.cursor = "pointer"));
     map.on("mouseleave", id, () => (map.getCanvas().style.cursor = ""));

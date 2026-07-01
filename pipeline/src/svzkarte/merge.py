@@ -1,9 +1,10 @@
-"""Merge: alle data/interim/<land>.fgb -> nach Geometrietyp getrennt (validiert).
+"""Merge: alle data/interim/<land>.fgb -> nach Datensatz/Geometrie getrennt (validiert).
 
-Linien-Länder (Zählstellenbereiche/Segmente) und Punkt-Länder (Zählstellen-
-Standorte, z.B. BW/SL) landen in getrennten FGB — FlatGeobuf hält nur einen
-Geometrietyp, und im Frontend rendern Linien- und Punkt-Layer separat. tiles.py
-fügt beide per tile-join zu einem svz_de.pmtiles (Layer `svz` + `svz_points`).
+Drei Ausgaben, weil FlatGeobuf nur einen Geometrietyp hält und BASt ein eigenes,
+im Frontend separat schaltbares PMTiles bekommt:
+  - svz_lines.fgb   Länder-Linien (Zählstellenbereiche/Segmente)   -> Layer `svz`
+  - svz_points.fgb  Länder-Punkte (Zählstellen-Standorte, BW/SL)   -> Layer `svz_points`
+  - svz_bast.fgb    BASt-Backbone (Bundesfernstraßen A+B, Punkte)  -> eigenes svz_bast.pmtiles
 """
 
 from __future__ import annotations
@@ -14,10 +15,12 @@ from svzkarte import schema
 from svzkarte.adapters import base
 from svzkarte.config import get_paths
 
-OUT = {"lines": "svz_lines.fgb", "points": "svz_points.fgb"}
+OUT = {"lines": "svz_lines.fgb", "points": "svz_points.fgb", "bast": "svz_bast.fgb"}
 
 
-def _kind(gdf) -> str:
+def _group(gdf) -> str:
+    if "source" in gdf.columns and (gdf["source"] == "bast").all():
+        return "bast"  # BASt in eigenes PMTiles, unabhängig vom Geometrietyp
     return "points" if set(gdf.geom_type) <= {"Point", "MultiPoint"} else "lines"
 
 
@@ -30,10 +33,10 @@ def merge() -> dict[str, Path]:
     if not parts:
         raise FileNotFoundError(f"Keine Länder-FGB in {paths.interim} — erst `svz build all`.")
 
-    groups: dict[str, list] = {"lines": [], "points": []}
+    groups: dict[str, list] = {"lines": [], "points": [], "bast": []}
     for p in parts:
         g = gpd.read_file(p)
-        groups[_kind(g)].append(g)
+        groups[_group(g)].append(g)
 
     written: dict[str, Path] = {}
     for kind, frames in groups.items():

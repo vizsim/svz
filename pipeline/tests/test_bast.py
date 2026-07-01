@@ -24,6 +24,9 @@ def _fake_excel(*_a, **_k) -> pd.DataFrame:
 
 def test_bast_builds_points_from_xy(monkeypatch) -> None:
     monkeypatch.setattr(base, "read_excel_zip", _fake_excel)
+    monkeypatch.setattr(
+        bast, "_cfg", lambda: {"urls": ["x"], "year": 2021, "license": "CC-BY-4.0", "metric": "DTV"}
+    )
     gdf = bast.normalize()
 
     schema.validate(gdf, where="bast")

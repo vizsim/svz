@@ -95,29 +95,44 @@ def tile_join(output_path: Path, inputs: list[Path], *, dry_run: bool = False) -
     return output_path
 
 
-def build_svz(*, dry_run: bool = False) -> Path:
-    """svz_lines.fgb (-> Layer `svz`) + svz_points.fgb (-> Layer `svz_points`) tilen
-    und per tile-join zu data/svz/svz_de.pmtiles vereinen. Tilet nur, was existiert.
+def build_svz(*, dry_run: bool = False) -> dict[str, Path]:
+    """Zwei PMTiles:
+      - svz_de.pmtiles  = svz_lines.fgb (Layer `svz`) + svz_points.fgb (`svz_points`),
+        per tile-join vereint (Länder).
+      - svz_bast.pmtiles = svz_bast.fgb (Layer `bast`), der bundesweite BASt-Backbone,
+        im Frontend separat schaltbar.
+    Baut nur, was als FGB existiert.
     """
     from svzkarte.config import get_paths
 
     paths = get_paths()
-    out = paths.svz / "svz_de.pmtiles"
-    jobs = [
+    results: dict[str, Path] = {}
+
+    # 1) Länder -> svz_de.pmtiles (Linien + Punkte via tile-join).
+    out_de = paths.svz / "svz_de.pmtiles"
+    parts: list[Path] = []
+    for profile, fgb in (
         ("svz_lines", paths.svz / "svz_lines.fgb"),
         ("svz_points", paths.svz / "svz_points.fgb"),
-    ]
-    parts: list[Path] = []
-    for profile, fgb in jobs:
+    ):
         if not fgb.exists() and not dry_run:
             continue
-        part = out.with_name(f"_{profile}_tmp.pmtiles")
+        part = out_de.with_name(f"_{profile}_tmp.pmtiles")
         tippecanoe(profile, fgb, part, dry_run=dry_run)
         parts.append(part)
-    if not parts:
+    if parts:
+        results["svz_de"] = tile_join(out_de, parts, dry_run=dry_run)
+        if not dry_run:
+            for part in parts:
+                part.unlink(missing_ok=True)
+
+    # 2) BASt-Backbone -> eigenes svz_bast.pmtiles.
+    bast_fgb = paths.svz / "svz_bast.fgb"
+    if bast_fgb.exists() or dry_run:
+        results["svz_bast"] = tippecanoe(
+            "bast_points", bast_fgb, paths.svz / "svz_bast.pmtiles", dry_run=dry_run
+        )
+
+    if not results:
         raise FileNotFoundError(f"Keine svz_*.fgb in {paths.svz} — erst `svz merge`.")
-    result = tile_join(out, parts, dry_run=dry_run)
-    if not dry_run:
-        for part in parts:
-            part.unlink(missing_ok=True)
-    return result
+    return results

@@ -7,6 +7,7 @@ import base64
 import json
 import subprocess
 import sys
+import tempfile
 import time
 import urllib.request
 from pathlib import Path
@@ -16,14 +17,15 @@ from websocket import create_connection
 URL, OUT, W, H = sys.argv[1], sys.argv[2], int(sys.argv[3]), int(sys.argv[4])
 PORT = 9333
 CHROME = str(next(Path.home().glob(".cache/ms-playwright/chromium-*/chrome-linux64/chrome")))
+PROFILE = tempfile.mkdtemp(prefix="cdp_profile_")  # frisches Profil -> KEIN alter Cache
 
 proc = subprocess.Popen(
     [CHROME, "--headless=new", "--no-sandbox", "--disable-gpu-sandbox",
      "--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader",
-     "--hide-scrollbars", "--force-device-scale-factor=1",
+     "--hide-scrollbars", "--force-device-scale-factor=1", "--disk-cache-size=1",
      f"--window-size={W},{H}", f"--remote-debugging-port={PORT}",
      "--remote-allow-origins=*",
-     "--user-data-dir=/tmp/cdp_profile", "about:blank"],
+     f"--user-data-dir={PROFILE}", "about:blank"],
     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
 )
 
@@ -50,6 +52,8 @@ try:
     ws = create_connection(page["webSocketDebuggerUrl"], timeout=60, max_size=64 * 2**20)
     cmd(ws, 1, "Page.enable")
     cmd(ws, 2, "Runtime.enable")
+    cmd(ws, 4, "Network.enable")
+    cmd(ws, 5, "Network.setCacheDisabled", {"cacheDisabled": True})
     cmd(ws, 3, "Page.navigate", {"url": URL})
 
     expr = ("!!(window.map && window.map.isStyleLoaded && window.map.isStyleLoaded()"

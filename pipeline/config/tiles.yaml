@@ -43,3 +43,19 @@ profiles:
       dtv_kfz: int
       dtv_sv: int
       year: int
+
+  # BASt-Backbone (Bundesfernstraßen A+B, Punkte) -> eigenes svz_bast.pmtiles, Layer `bast`.
+  bast_points:
+    layer: bast
+    minzoom: 5
+    maxzoom: 14
+    drop_rate: 0
+    drop_densest_as_needed: true
+    no_feature_limit: true
+    no_tile_size_limit: true
+    feature_filter:       # dieselbe DTV-Leiter (Autobahnen sind hoch-DTV -> früh sichtbar)
+      bast: *dtv_ladder
+    attribute_types:
+      dtv_kfz: int
+      dtv_sv: int
+      year: int

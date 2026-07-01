@@ -43,14 +43,17 @@ def _cfg() -> dict:
 
 
 def normalize() -> GeoDataFrame:
-    """BASt-Autobahn-Excel (X/Y, UTM32N) -> kanonische Punkte (EPSG:4326)."""
+    """BASt-Excels A+B (X/Y, UTM32N) -> kanonische Punkte (EPSG:4326)."""
     import geopandas as gpd
     import pandas as pd
 
     cfg = _cfg()
-    df = base.read_excel_zip(cfg["url"], sheet="Zeilenformat")
-    # nur Zählstellen mit Koordinaten -> Punktgeometrie.
-    df = df[pd.to_numeric(df["X_Koordinate"], errors="coerce").notna()].copy()
+    frames = []
+    for url in cfg["urls"]:
+        d = base.read_excel_zip(url, sheet="Zeilenformat")
+        # nur Zählstellen mit Koordinaten -> Punktgeometrie.
+        frames.append(d[pd.to_numeric(d["X_Koordinate"], errors="coerce").notna()])
+    df = pd.concat(frames, ignore_index=True)
     gdf = gpd.GeoDataFrame(
         df,
         geometry=gpd.points_from_xy(df["X_Koordinate"], df["Y_Koordinate"]),

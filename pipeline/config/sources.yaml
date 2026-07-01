@@ -82,14 +82,13 @@ sources:
     license: "offen"      # Caps: "keine Zugriffsbeschränkungen / keine Bedingungen"
     metric: DTV
 
-  # ---- Bundesweit: BASt-Backbone (Autobahnen) ----
+  # ---- Bundesweit: BASt-Backbone (Bundesfernstraßen A + B) ----
   bast:
     status: live
     kind: xlsx            # BASt SVZ 2021, Blatt Zeilenformat, mit X/Y-Koordinaten (UTM32N)
-    url: "https://www.bast.de/DE/Publikationen/Statistik/Verkehrsdaten/2021/Autobahnen-2021.xlsx?__blob=publicationFile&v=1"
-    # PUNKTE (state=DE, source=bast). Füllt die Autobahn-Lücke (NW/BE). Adapter: bast.py.
-    # Bundesstraßen-2021.xlsx (…/2021/Bundesstrassen-2021.xlsx?__blob=publicationFile&v=1)
-    # bewusst weggelassen -> B decken die Länder ab (Doppelzählung vermeiden).
+    urls:                 # PUNKTE (state=DE, source=bast); Adapter: bast.py
+      - "https://www.bast.de/DE/Publikationen/Statistik/Verkehrsdaten/2021/Autobahnen-2021.xlsx?__blob=publicationFile&v=1"
+      - "https://www.bast.de/DE/Publikationen/Statistik/Verkehrsdaten/2021/Bundesstrassen-2021.xlsx?__blob=publicationFile&v=1"
     year: 2021
     license: "CC-BY-4.0"      # © BASt
     metric: DTV
