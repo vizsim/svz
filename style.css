@@ -83,3 +83,20 @@ tr.src-hint td { padding: 0 0 4px 24px; font-size: 10px; color: #a8a8a8; font-st
 .popup-road { font-weight: 700; font-size: 13px; color: #111; }
 .popup-dtv { color: #d73027; font-weight: 600; }
 .popup-meta { color: #666; }
+
+/* ---- schmale Screens / Mobile ------------------------------------------- */
+@media (max-width: 640px) {
+  #title {
+    left: 8px; right: 8px; top: 8px; padding: 8px 11px;
+    max-width: none;
+  }
+  #title h1 { font-size: 16px; }
+  #title p { font-size: 11px; }
+  #sources-body { max-height: 42vh; }
+  .src-row td { padding-right: 6px; }
+
+  #legend { bottom: 8px; left: 8px; padding: 8px 10px; min-width: 0; }
+  .legend-title { font-size: 11px; }
+  .legend-row { font-size: 10px; margin: 1px 0; }
+  .legend-swatch { width: 18px; margin-right: 6px; }
+}

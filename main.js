@@ -134,6 +134,13 @@ srcToggle.addEventListener("click", () => {
   srcToggle.setAttribute("aria-expanded", String(!open));
 });
 
+// Auf schmalen Screens (Handy) initial eingeklappt, damit die Karte sichtbar bleibt.
+if (window.matchMedia("(max-width: 640px)").matches) {
+  srcBody.style.display = "none";
+  srcToggle.textContent = "Quellen ▸";
+  srcToggle.setAttribute("aria-expanded", "false");
+}
+
 // Länder filtern die geteilten Layer nach `state`; BASt schaltet seinen eigenen Layer.
 function applySources() {
   const states = SOURCES.filter((s) => s.kind === "land" && s.el.checked).map((s) => s.code);
