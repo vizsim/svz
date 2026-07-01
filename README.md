@@ -1,3 +1,5 @@
+![License: AGPL-3.0-or-later](https://img.shields.io/badge/License-AGPL--3.0--or--later-blue)
+
 # Verkehrsmengenkarte – SVZ der Bundesländer
 
 Sammelt die **Straßenverkehrszählungs-/Verkehrsmengendaten (DTV)** der deutschen
@@ -83,3 +85,17 @@ svz/
    ├─ TODO.md                          # Datenlücken, BASt-Backbone, offene Punkte
    └─ cdp_shot.py                      # Headless-Screenshot-Tooling (CDP)
 ```
+
+## Lizenz
+
+**Code: [AGPL-3.0-or-later](LICENSE)** © vizsim. Der Quellcode-Link im UI (Panel-Footer)
+erfüllt die AGPL-§13-Pflicht (Network Use).
+
+**Daten** behalten ihre **jeweilige Quell-Lizenz** (Spalte „Lizenz" in der Tabelle oben:
+dl-de/by-2.0 · CC-BY-4.0 · dl-de/zero-2.0 · © BASt · © UBA) und **erfordern
+Namensnennung** – die `svz_de.pmtiles`/`svz_bast.pmtiles` sind nur eine umgepackte
+Ableitung, keine eigene Lizenzierung der Inhalte. Attribution der Länder trägt jedes
+Feature im Feld `license`/`source`.
+
+**Basiskarte:** [OpenFreeMap](https://openfreemap.org/) · OpenMapTiles ·
+[OpenStreetMap](https://www.openstreetmap.org/copyright)-Daten (ODbL).
