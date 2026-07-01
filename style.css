@@ -51,9 +51,18 @@ tbody.bast-body .src-name { font-style: italic; color: #444; }
   box-shadow: 0 1px 4px rgba(0,0,0,0.25); min-width: 190px;
 }
 .legend-title { font-size: 12px; font-weight: 600; margin-bottom: 8px; color: #222; }
-.legend-row { display: flex; align-items: center; font-size: 11px; color: #333; margin: 2px 0; }
-.legend-swatch { width: 22px; height: 5px; border-radius: 2px; margin-right: 8px; flex: none; }
-.legend-foot { font-size: 10px; color: #888; margin-top: 8px; }
+.legend-row {
+  display: flex; align-items: center; font-size: 11px; color: #333; margin: 2px 0;
+  transition: color 0.2s;
+}
+.legend-swatch {
+  width: 22px; height: 5px; border-radius: 2px; margin-right: 8px; flex: none;
+  transition: background 0.2s;
+}
+/* per-Zoom ausgefiltert -> ausgegraut */
+.legend-row.dimmed { color: #c2c2c2; }
+.legend-row.dimmed .legend-swatch { background: #dcdcdc !important; }
+#legend-cut { font-size: 10px; color: #888; font-style: italic; margin-top: 8px; }
 
 .maplibregl-popup-content {
   font-size: 12px; line-height: 1.5; padding: 10px 12px; border-radius: 8px;

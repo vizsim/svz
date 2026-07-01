@@ -244,13 +244,48 @@ map.on("load", () => {
 // Legende aus derselben Skala bauen.
 const legend = document.getElementById("legend-scale");
 const labels = ["0", "3 000", "8 000", "15 000", "25 000", "40 000", "60 000+"];
-SCALE.forEach(([, color], i) => {
+const legendRows = [];
+SCALE.forEach(([value, color], i) => {
   const row = document.createElement("div");
   row.className = "legend-row";
-  row.innerHTML = `<span class="legend-swatch" style="background:${color}"></span>${labels[i]}`;
+  row.innerHTML =
+    `<span class="legend-swatch" style="background:${color}"></span>` +
+    `<span class="legend-label">${labels[i]}</span>`;
   legend.appendChild(row);
+  legendRows.push({ el: row, value });
 });
-const nd = document.createElement("div");
-nd.className = "legend-row";
-nd.innerHTML = `<span class="legend-swatch" style="background:${NODATA}"></span>keine Angabe`;
-legend.appendChild(nd);
+const ndRow = document.createElement("div");
+ndRow.className = "legend-row";
+ndRow.innerHTML =
+  `<span class="legend-swatch" style="background:${NODATA}"></span>` +
+  `<span class="legend-label">keine Angabe</span>`;
+legend.appendChild(ndRow);
+
+// Dynamischer Hinweis auf den Zoom-Filter (DTV-Leiter, s. tiles.yaml).
+const cut = document.createElement("div");
+cut.id = "legend-cut";
+legend.appendChild(cut);
+
+// Schwelle je (Ganzzahl-)Zoom – muss zur DTV-Leiter in tiles.yaml passen.
+function zoomThreshold(z) {
+  const fz = Math.floor(z);
+  if (fz >= 8) return 0;
+  if (fz === 7) return 1000;
+  if (fz === 6) return 2000;
+  return 10000;
+}
+
+// Ausgefilterte Bereiche in der Legende ausgrauen + Schwelle anzeigen.
+function updateLegendForZoom() {
+  const t = zoomThreshold(map.getZoom());
+  for (const { el, value } of legendRows) el.classList.toggle("dimmed", value < t);
+  ndRow.classList.toggle("dimmed", t > 0); // Features ohne DTV erst ab Zoom 8
+  if (t > 0) {
+    cut.textContent = `bei diesem Zoom erst ab ${t.toLocaleString("de-DE")} Kfz/24h`;
+    cut.style.display = "block";
+  } else {
+    cut.style.display = "none";
+  }
+}
+map.on("zoom", updateLegendForZoom);
+updateLegendForZoom();
