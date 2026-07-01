@@ -1,0 +1,87 @@
+{
+  "svz_de": {
+    "label": "Verkehrsmengen (SVZ der Länder)",
+    "attribution": "Straßenbauverwaltungen der Länder + BASt (dl-de/by-2.0, CC-BY 4.0, dl-de/zero-2.0)",
+    "file": "svz/svz_de.pmtiles",
+    "present": true,
+    "vintage": "2024",
+    "built": "2026-07-01"
+  },
+  "_sources": {
+    "be": {
+      "year": 2023,
+      "license": "dl-de/zero-2.0",
+      "metric": "DTVw"
+    },
+    "ni": {
+      "year": 2021,
+      "license": "CC-BY-4.0",
+      "metric": "DTV"
+    },
+    "by": {
+      "year": 2021,
+      "license": "CC-BY-4.0",
+      "metric": "DTV"
+    },
+    "bb": {
+      "year": 2021,
+      "license": "dl-de/by-2.0",
+      "metric": "DTV"
+    },
+    "hh": {
+      "year": 2019,
+      "license": "dl-de/by-2.0",
+      "metric": "DTV"
+    },
+    "nw": {
+      "year": 2019,
+      "license": "dl-de/by-2.0",
+      "metric": "DTV"
+    },
+    "bw": {
+      "year": 2024,
+      "license": "dl-de/by-2.0",
+      "metric": "DTV"
+    },
+    "sl": {
+      "year": 2021,
+      "license": "CC-BY-4.0",
+      "metric": "DTV"
+    },
+    "bast": {
+      "year": 2021,
+      "license": "© BASt",
+      "metric": "DTV"
+    },
+    "th": {
+      "year": 2015,
+      "license": "dl-de/by-2.0",
+      "metric": "DTV"
+    },
+    "sh": {
+      "year": 2021,
+      "license": "CC-BY-4.0",
+      "metric": "DTV"
+    },
+    "st": {
+      "year": 2021,
+      "license": "dl-de/by-2.0",
+      "metric": "DTV"
+    },
+    "mv": {
+      "year": 2015,
+      "license": "dl-de/by-2.0",
+      "metric": "DTV"
+    },
+    "sn": {
+      "year": 2021,
+      "license": "dl-de/by-2.0",
+      "metric": "DTV"
+    },
+    "rp": {
+      "year": 2021,
+      "license": "dl-de/by-2.0",
+      "metric": "DTV"
+    }
+  }
+}

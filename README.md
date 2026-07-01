@@ -36,7 +36,7 @@ mehr** (z.B. NRW gar keine, Berlin nur Reste). Diese Lücke schließt der
 **BASt-Backbone**: die bundesweite BASt-SVZ 2021 der **Bundesfernstraßen (A + B)** ist
 als Punkte (mit DTV, aus den X/Y-Koordinaten der Zählstellen) integriert – in einem
 **eigenen, im Frontend ein-/ausblendbaren** `svz_bast.pmtiles`, sodass die Überlappung
-mit den Länder-Daten (v.a. bei den Bundesstraßen) wegschaltbar bleibt. Details in [TODO.md](TODO.md).
+mit den Länder-Daten (v.a. bei den Bundesstraßen) wegschaltbar bleibt. Details in [TODO.md](docs/TODO.md).
 
 ## Datenquellen der 16 Bundesländer
 
@@ -64,7 +64,7 @@ Legende Status: ✅ live (implementiert) · 🔍 offen (Endpunkt gesucht) · ⛔
 | **Bund – BASt** (A+B) | ✅ | [Excel A](https://www.bast.de/DE/Publikationen/Statistik/Verkehrsdaten/2021/Autobahnen-2021.xlsx?__blob=publicationFile&v=1) · [Excel B](https://www.bast.de/DE/Publikationen/Statistik/Verkehrsdaten/2021/Bundesstrassen-2021.xlsx?__blob=publicationFile&v=1) | Punkte | 2021 | DTV | © BASt | 11.950 | **Bundesweiter Backbone** (Bundesfernstraßen A+B, X/Y-Koordinaten UTM32N) → füllt die A-Lücke (NW/BE); `state=DE`, `source=bast`. Eigenes **`svz_bast.pmtiles`, im Frontend separat schaltbar**. |
 | **Bund – UBA HVS** | ✅ | [UBA-Lärmkartierung (Viewer)](https://gis.uba.de/maps/resources/apps/laermkartierung/index.html?lang=de) | Linien | 2021 | DTV≈ | © UBA | bundesweit | **Hauptverkehrsstraßen (UBA/END 4. Runde)**, Attribut `annualTrafficFlow` (Kfz/Jahr) → als **DTV≈** (÷365) eingefärbt. Gehostete PMTiles aus [unfallkarte](https://tiles.vizsim.de/file/unfallkarte-data-v2/uba/hvs_verkehrsmengen.pmtiles); im Frontend **initial ausgeblendeter Fallback/Backbone** (nur ab Zoom 9). |
 
-Blockierte/offene Länder sind in [TODO.md](TODO.md) detailliert. Ein wiederkehrendes
+Blockierte/offene Länder sind in [TODO.md](docs/TODO.md) detailliert. Ein wiederkehrendes
 Muster: einige Länder liefern nur **Netzgeometrie ohne DTV** (SH, ST-WFS) oder DTV nur
 als **PDF** (HB, HE, SH-L/K) – dann braucht es eine Werte-Tabelle mit Netzknoten/
 Zählstellennummer zum Join (wie ST/TH). Autobahnen decken bundesweit der **BASt-Backbone**
@@ -79,6 +79,7 @@ svz/
 │  ├─ src/svzkarte/adapters/<code>.py  # ein Adapter je Land, normalize() -> GeoDataFrame
 │  ├─ config/sources.yaml              # je Land: status/kind/url/year/license/metric
 │  └─ config/tiles.yaml                # tippecanoe-Profile (svz_lines / svz_points)
-├─ TODO.md                             # Datenlücken, BASt-Backbone, offene Punkte
-└─ docs/                               # Screenshots
+└─ docs/
+   ├─ TODO.md                          # Datenlücken, BASt-Backbone, offene Punkte
+   └─ cdp_shot.py                      # Headless-Screenshot-Tooling (CDP)
 ```

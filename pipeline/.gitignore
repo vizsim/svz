@@ -2,7 +2,7 @@
 .env
 
 # --- Daten (rohe + abgeleitete Artefakte; liegen lokal + im Bucket, nicht im Git) ---
-data/
+data/*
 *.pmtiles
 *.parquet
 *.fgb
@@ -13,6 +13,14 @@ data/
 
 # Ausnahme: das generierte Manifest gehört ins Deploy (klein, kein Datenblob)
 !data/manifest.json
+
+# Ausnahme: die zwei publizierten PMTiles einmalig ins Repo (GitHub-Pages-Hosting),
+# bis sie auf Backblaze/tiles.vizsim.de liegen — dann Negationen wieder entfernen.
+# data/* + *.pmtiles ignorieren sonst alles darunter; die Negationen müssen NACH
+# beiden Regeln stehen, damit sie greifen (spätere Regel gewinnt).
+!data/svz/
+!data/svz/svz_de.pmtiles
+!data/svz/svz_bast.pmtiles
 
 # --- Python / uv ---
 __pycache__/
