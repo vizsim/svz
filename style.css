@@ -46,9 +46,17 @@ tbody.bast-body tr.src-hint td { border-top: none; padding-top: 0; }
 /* kleiner Hinweis unter einer Quelle (z.B. UBA-HVS: >3 Mio Kfz/Jahr, ab Zoom 9) */
 tr.src-hint td { padding: 0 0 4px 24px; font-size: 10px; color: #a8a8a8; font-style: italic; }
 
-.src-details { margin-top: 7px; font-size: 11px; }
-.src-details a { color: #4576c4; text-decoration: none; }
-.src-details a:hover { text-decoration: underline; }
+.src-details {
+  margin-top: 7px; font-size: 11px;
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+}
+.src-details > a { color: #4576c4; text-decoration: none; }
+.src-details > a:hover { text-decoration: underline; }
+/* dezente GitHub-/Issue-Icons rechts neben dem README-Hinweis */
+.src-links { display: inline-flex; gap: 9px; align-items: center; }
+.src-links a { color: #b4b4b4; display: inline-flex; }
+.src-links a:hover { color: #444; }
+.src-links svg { display: block; }
 
 #legend {
   position: absolute; bottom: 22px; left: 12px; z-index: 2;
