@@ -53,8 +53,14 @@ eine maschinenlesbare Werte-Tabelle zum Join.
 - **Rheinland-Pfalz (RP)** — OGC API Features (`spatial-objects/393`, Collections
   `DTV_WFS:SVZ{Jahr}_Zaehlstellenbereiche`) existiert, liefert aber serverseitig
   konstant „Wfs object could not be created from db!" → warten, bis der Dienst läuft.
-- **Mecklenburg-Vorpommern (MV)** — WFS/SVZ-Endpunkt noch nicht verifiziert (offen).
-- **Bremen (HB) / Hessen (HE)** — nur PDF/Viewer, keine maschinenlesbaren Vektor-DTV.
+  Info-Portal (Viewer/PDF): <https://lbm.rlp.de/themen/strassendaten/verkehrsstaerkenkarten>.
+- **Mecklenburg-Vorpommern (MV)** — WFS/SVZ-Endpunkt noch nicht verifiziert; als Info
+  eine Verkehrsmengenkarte 2021 (PDF, LSBV M-V):
+  <https://www.strassen-mv.de/static/LSBV/Dateien/Downloads/Verkehrsmengenkarten/vmk2021.pdf>.
+- **Bremen (HB)** — nur PDF-Verkehrsmengenkarten:
+  <https://bau.bremen.de/mobilitaet/verkehrsdaten/verkehrsmengenkarten-59016>.
+- **Hessen (HE)** — nur interaktiver Viewer/PDF (maschinenlesbare Herausgabe verweigert):
+  <https://mobil.hessen.de/verkehr/interaktive-verkehrsmengenkarte>.
 
 Gemeinsamer Ausweg für all diese: der **BASt-Backbone** deckt A/B bundesweit ab; das
 nachgeordnete Netz (L/K) bleibt bei diesen Ländern lückenhaft, bis eine DTV-Tabelle
