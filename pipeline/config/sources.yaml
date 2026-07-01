@@ -30,7 +30,7 @@ sources:
     kind: zip             # INSPIRE-Downloadservice: ZIP mit Shapefile, EPSG:25832
     url: "https://map.strassenbau.niedersachsen.de/zip/DE-NI-SBV_Downloadservice_SVZ_Zaehlstellenbereiche_2021.zip"
     year: 2021            # Adapter: ni.py (dtv21/dtvsv21/strkl/strbez/zstnr)
-    license: "dl-de/by-2.0"
+    license: "CC-BY-4.0"  # geprüft am INSPIRE-Record (useLimitation „CC BY 4.0"); Übersicht sagte dl-de/by-2.0
     metric: DTV
 
   by:
@@ -79,7 +79,7 @@ sources:
     url: "https://geoportal.saarland.de/arcgis/services/Internet/Verkehr_WFS/MapServer/WFSServer"
     # typename + Felder im Adapter (adapters/sl.py): Verkehr_WFS:SVZ_Zaehlstellen.
     year: 2021            # lt. Übersicht; am Datensatz nicht eindeutig datiert
-    license: "offen"      # Caps: "keine Zugriffsbeschränkungen / keine Bedingungen"
+    license: "CC-BY-4.0"  # geoportal.de-Metadaten (Record 7673af77-…): cc-by-4.0, Namensnennung
     metric: DTV
 
   # ---- Bundesweit: BASt-Backbone (Bundesfernstraßen A + B) ----
@@ -90,7 +90,7 @@ sources:
       - "https://www.bast.de/DE/Publikationen/Statistik/Verkehrsdaten/2021/Autobahnen-2021.xlsx?__blob=publicationFile&v=1"
       - "https://www.bast.de/DE/Publikationen/Statistik/Verkehrsdaten/2021/Bundesstrassen-2021.xlsx?__blob=publicationFile&v=1"
     year: 2021
-    license: "CC-BY-4.0"      # © BASt
+    license: "© BASt"        # SVZ-Ergebnis-Excel ohne explizite Lizenz; nur © BASt (Netz-WFS wäre CC-BY-4.0)
     metric: DTV
 
   th:

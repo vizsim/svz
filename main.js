@@ -34,13 +34,13 @@ const SOURCES = [
   { code: "BE", name: "Berlin", year: 2023, metric: "DTVw", license: "dl-de/zero-2.0", kind: "land" },
   { code: "BB", name: "Brandenburg", year: 2021, metric: "DTV", license: "dl-de/by-2.0", kind: "land" },
   { code: "HH", name: "Hamburg", year: 2019, metric: "DTV", license: "dl-de/by-2.0", kind: "land" },
-  { code: "NI", name: "Niedersachsen", year: 2021, metric: "DTV", license: "dl-de/by-2.0", kind: "land" },
+  { code: "NI", name: "Niedersachsen", year: 2021, metric: "DTV", license: "CC-BY-4.0", kind: "land" },
   { code: "NW", name: "Nordrhein-Westfalen", year: 2019, metric: "DTV", license: "dl-de/by-2.0", kind: "land" },
-  { code: "SL", name: "Saarland", year: 2021, metric: "DTV", license: "offen", kind: "land" },
+  { code: "SL", name: "Saarland", year: 2021, metric: "DTV", license: "CC-BY-4.0", kind: "land" },
   { code: "SN", name: "Sachsen", year: 2021, metric: "DTV", license: "dl-de/by-2.0", kind: "land" },
   { code: "ST", name: "Sachsen-Anhalt", year: 2021, metric: "DTV", license: "dl-de/by-2.0", kind: "land" },
   { code: "TH", name: "Thüringen", year: 2015, metric: "DTV", license: "dl-de/by-2.0", kind: "land" },
-  { code: "DE", name: "BASt-Backbone (A+B)", year: 2021, metric: "DTV", license: "CC-BY-4.0", kind: "bast" },
+  { code: "DE", name: "BASt-Backbone (A+B)", year: 2021, metric: "DTV", license: "© BASt", kind: "bast" },
 ];
 
 // pmtiles-Protokoll registrieren.
