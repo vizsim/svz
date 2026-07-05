@@ -78,6 +78,32 @@ const hvsInterp = ["interpolate", ["linear"], ["/", ["to-number", ["get", "annua
 for (const [v, c] of SCALE) hvsInterp.push(v, c);
 const hvsColorExpr = ["case", ["has", "annualTrafficFlow"], hvsInterp, NODATA];
 
+// Zweite Färbung: SV-Anteil (% Schwerverkehr), umschaltbar per Legenden-Toggle.
+const SCALE_SV = [
+  [0, "#1a9850"],
+  [5, "#66bd63"],
+  [10, "#d9ef8b"],
+  [15, "#fee08b"],
+  [20, "#fdae61"],
+  [25, "#f46d43"],
+  [30, "#d73027"],
+];
+// SV-Anteil je Feature: direkt sv_anteil (%), sonst aus dtv_sv/dtv_kfz berechnet.
+const svShare = [
+  "case",
+  ["has", "sv_anteil"], ["to-number", ["get", "sv_anteil"]],
+  ["*", ["/", ["to-number", ["get", "dtv_sv"]], ["to-number", ["get", "dtv_kfz"]]], 100],
+];
+const svInterp = ["interpolate", ["linear"], svShare];
+for (const [v, c] of SCALE_SV) svInterp.push(v, c);
+// grau, wenn weder Anteil noch (SV & DTV>0) vorliegt.
+const hasSv = [
+  "any",
+  ["has", "sv_anteil"],
+  ["all", ["has", "dtv_sv"], ["has", "dtv_kfz"], [">", ["to-number", ["get", "dtv_kfz"]], 0]],
+];
+const svColorExpr = ["case", hasSv, svInterp, NODATA];
+
 // Basemap: gehosteter OpenFreeMap-Positron-Style (keyless, kein lokales style.json).
 const map = new maplibregl.Map({
   container: "map",
@@ -118,7 +144,6 @@ for (const s of SOURCES) {
     `<td><input type="checkbox" checked></td>` +
     `<td class="src-name">${s.name}</td>` +
     `<td class="src-year">${s.year}</td>` +
-    `<td class="src-metric">${s.metric}</td>` +
     `<td class="src-lic">${licenseCell(s.license)}</td>` +
     `<td class="src-access">${accessCell(s.access)}</td>`;
   const cb = tr.querySelector("input");
@@ -135,7 +160,7 @@ for (const s of SOURCES) {
   if (s.hint) {
     const ht = document.createElement("tr");
     ht.className = "src-hint";
-    ht.innerHTML = `<td colspan="6"></td>`;
+    ht.innerHTML = `<td colspan="5"></td>`;
     parent.append(ht);
     s.hintEl = ht;
   }
@@ -383,30 +408,44 @@ map.on("load", () => {
   }
 });
 
-// Legende aus derselben Skala bauen.
+// --- Legende: umschaltbar DTV <-> SV-Anteil (Modus-Toggle im Legenden-Kopf). ---
 const legend = document.getElementById("legend-scale");
-const labels = ["0", "3 000", "8 000", "15 000", "25 000", "40 000", "60 000+"];
-const legendRows = [];
-SCALE.forEach(([value, color], i) => {
-  const row = document.createElement("div");
-  row.className = "legend-row";
-  row.innerHTML =
-    `<span class="legend-swatch" style="background:${color}"></span>` +
-    `<span class="legend-label">${labels[i]}</span>`;
-  legend.appendChild(row);
-  legendRows.push({ el: row, value });
-});
-const ndRow = document.createElement("div");
-ndRow.className = "legend-row";
-ndRow.innerHTML =
-  `<span class="legend-swatch" style="background:${NODATA}"></span>` +
-  `<span class="legend-label">keine Angabe</span>`;
-legend.appendChild(ndRow);
+const legendTitle = document.getElementById("legend-title");
+const DTV_LABELS = ["0", "3 000", "8 000", "15 000", "25 000", "40 000", "60 000+"];
+const SV_LABELS = ["0", "5", "10", "15", "20", "25", "30+"]; // % Schwerverkehr
 
-// Dynamischer Hinweis auf den Zoom-Filter (DTV-Leiter, s. tiles.yaml).
-const cut = document.createElement("div");
-cut.id = "legend-cut";
-legend.appendChild(cut);
+let mode = "dtv";     // aktive Färbung: "dtv" | "sv"
+let legendRows = [];  // pro Modus neu aufgebaut
+let ndRow, cut;       // "keine Angabe" + Zoom-Cut-Hinweis (nur DTV)
+
+// Legenden-Skala + Titel für den aktiven Modus (neu) aufbauen.
+function renderLegend(m) {
+  const scale = m === "sv" ? SCALE_SV : SCALE;
+  const labels = m === "sv" ? SV_LABELS : DTV_LABELS;
+  legendTitle.innerHTML =
+    m === "sv" ? "SV-Anteil · Schwerverkehr %" : "DTV / DTV<sub>w</sub> · Kfz/24h";
+  legend.innerHTML = "";
+  legendRows = [];
+  scale.forEach(([value, color], i) => {
+    const row = document.createElement("div");
+    row.className = "legend-row";
+    row.innerHTML =
+      `<span class="legend-swatch" style="background:${color}"></span>` +
+      `<span class="legend-label">${labels[i]}</span>`;
+    legend.appendChild(row);
+    legendRows.push({ el: row, value });
+  });
+  ndRow = document.createElement("div");
+  ndRow.className = "legend-row";
+  ndRow.innerHTML =
+    `<span class="legend-swatch" style="background:${NODATA}"></span>` +
+    `<span class="legend-label">keine Angabe</span>`;
+  legend.appendChild(ndRow);
+  // Dynamischer Hinweis auf den Zoom-Filter (DTV-Leiter, s. tiles.yaml).
+  cut = document.createElement("div");
+  cut.id = "legend-cut";
+  legend.appendChild(cut);
+}
 
 // Schwelle je (Ganzzahl-)Zoom – muss zur DTV-Leiter in tiles.yaml passen.
 function zoomThreshold(z) {
@@ -417,8 +456,15 @@ function zoomThreshold(z) {
   return 10000;
 }
 
-// Ausgefilterte Bereiche in der Legende ausgrauen + Schwelle anzeigen.
+// Ausgefilterte Bereiche in der Legende ausgrauen + Schwelle anzeigen (nur DTV-Modus;
+// die Zoom-Leiter filtert nach DTV, nicht nach SV-Anteil).
 function updateLegendForZoom() {
+  if (mode !== "dtv") {
+    for (const { el } of legendRows) el.classList.remove("dimmed");
+    ndRow.classList.remove("dimmed");
+    cut.style.display = "none";
+    return;
+  }
   const t = zoomThreshold(map.getZoom());
   for (const { el, value } of legendRows) el.classList.toggle("dimmed", value < t);
   ndRow.classList.toggle("dimmed", t > 0); // Features ohne DTV erst ab Zoom 8
@@ -429,5 +475,30 @@ function updateLegendForZoom() {
     cut.style.display = "none";
   }
 }
+
+// Modus umschalten: Farb-Expression auf allen Datenebenen + Legende tauschen.
+const DATA_LAYERS = [
+  ["svz-lines", "line-color"],
+  ["svz-points", "circle-color"],
+  ["bast-points", "circle-color"],
+];
+const modeButtons = [...document.querySelectorAll("#legend-modes button")];
+function setMode(m) {
+  mode = m;
+  const expr = m === "sv" ? svColorExpr : colorExpr;
+  for (const [id, prop] of DATA_LAYERS) {
+    if (map.getLayer(id)) map.setPaintProperty(id, prop, expr);
+  }
+  // UBA-HVS kennt keinen SV -> im SV-Modus grau, sonst DTV≈-Färbung.
+  if (map.getLayer("hvs-lines")) {
+    map.setPaintProperty("hvs-lines", "line-color", m === "sv" ? NODATA : hvsColorExpr);
+  }
+  for (const b of modeButtons) b.classList.toggle("active", b.dataset.mode === m);
+  renderLegend(m);
+  updateLegendForZoom();
+}
+for (const b of modeButtons) b.addEventListener("click", () => setMode(b.dataset.mode));
+
+renderLegend("dtv");
 map.on("zoom", updateLegendForZoom);
 updateLegendForZoom();

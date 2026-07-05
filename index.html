@@ -20,7 +20,7 @@
       <div id="sources-body">
         <label class="src-all"><input type="checkbox" id="src-all" checked /> alle Quellen</label>
         <table id="sources-table">
-          <thead><tr><th></th><th>Land</th><th>Jahr</th><th>Metrik</th><th>Lizenz</th><th>Zugang</th></tr></thead>
+          <thead><tr><th></th><th>Land</th><th>Jahr</th><th>Lizenz</th><th>Zugang</th></tr></thead>
           <tbody id="sources-list"></tbody>
           <tbody id="sources-bast-body" class="bast-body"></tbody>
         </table>
@@ -36,7 +36,11 @@
   </div>
 
   <div id="legend">
-    <div class="legend-title">DTV / DTV<sub>w</sub> Kfz · Fahrzeuge/24h</div>
+    <div id="legend-modes">
+      <button type="button" data-mode="dtv" class="active">DTV</button>
+      <button type="button" data-mode="sv">SV-Anteil</button>
+    </div>
+    <div class="legend-title" id="legend-title">DTV / DTV<sub>w</sub> · Kfz/24h</div>
     <div id="legend-scale"></div>
   </div>
 

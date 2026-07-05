@@ -32,7 +32,6 @@ body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
 .src-row td:first-child { padding-right: 4px; }
 .src-row input { cursor: pointer; vertical-align: middle; }
 .src-year { color: #555; font-variant-numeric: tabular-nums; }
-.src-metric { color: #777; }
 .src-lic a { color: #4576c4; text-decoration: none; }
 .src-lic a:hover { text-decoration: underline; }
 .src-lic-plain { color: #999; }
@@ -68,6 +67,17 @@ tr.src-hint td { padding: 0 0 4px 24px; font-size: 10px; color: #a8a8a8; font-st
   background: rgba(255,255,255,0.97); padding: 10px 12px; border-radius: 8px;
   box-shadow: 0 1px 4px rgba(0,0,0,0.25); min-width: 190px;
 }
+/* DTV <-> SV-Anteil Umschalter (segmented control) im Legenden-Kopf. */
+#legend-modes {
+  display: inline-flex; margin-bottom: 8px;
+  border: 1px solid #d8d8d8; border-radius: 6px; overflow: hidden;
+}
+#legend-modes button {
+  font: inherit; font-size: 11px; font-weight: 600; padding: 3px 10px;
+  border: none; background: #fff; color: #777; cursor: pointer;
+}
+#legend-modes button + button { border-left: 1px solid #d8d8d8; }
+#legend-modes button.active { background: #4576c4; color: #fff; }
 .legend-title { font-size: 12px; font-weight: 600; margin-bottom: 8px; color: #222; }
 .legend-row {
   display: flex; align-items: center; font-size: 11px; color: #333; margin: 2px 0;
