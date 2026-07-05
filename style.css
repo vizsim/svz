@@ -91,6 +91,12 @@ tr.src-hint td { padding: 0 0 4px 24px; font-size: 10px; color: #a8a8a8; font-st
 .legend-row.dimmed { color: #c2c2c2; }
 .legend-row.dimmed .legend-swatch { background: #dcdcdc !important; }
 #legend-cut { font-size: 10px; color: #888; font-style: italic; margin-top: 8px; }
+/* barrierefreie-Farben-Umschalter unter der Skala. */
+#legend-cvd {
+  display: flex; align-items: center; gap: 6px; margin-top: 9px;
+  font-size: 10px; color: #888; cursor: pointer;
+}
+#legend-cvd input { cursor: pointer; margin: 0; }
 
 .maplibregl-popup-content {
   font-size: 13px; line-height: 1.5; padding: 11px 14px; border-radius: 9px;

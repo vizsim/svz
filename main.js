@@ -67,18 +67,24 @@ const SOURCES = [
 const protocol = new pmtiles.Protocol();
 maplibregl.addProtocol("pmtiles", protocol.tile);
 
-// dtv_kfz -> Farbe. Fehlt der Wert (keine Zählung), NICHT als 0 einfärben, sondern grau.
+// Fehlt der Wert (keine Zählung), NICHT als 0 einfärben, sondern grau.
 const NODATA = "#b4b4b4";
-const interp = ["interpolate", ["linear"], ["get", "dtv_kfz"]];
-for (const [v, c] of SCALE) interp.push(v, c);
-const colorExpr = ["case", ["has", "dtv_kfz"], interp, NODATA];
 
-// UBA-HVS trägt annualTrafficFlow (Kfz/Jahr) -> als DTV-Äquivalent (÷365) einfärben.
-const hvsInterp = ["interpolate", ["linear"], ["/", ["to-number", ["get", "annualTrafficFlow"]], 365]];
-for (const [v, c] of SCALE) hvsInterp.push(v, c);
-const hvsColorExpr = ["case", ["has", "annualTrafficFlow"], hvsInterp, NODATA];
+// SV-Anteil je Feature: direkt sv_anteil (%), sonst aus dtv_sv/dtv_kfz berechnet.
+const svShare = [
+  "case",
+  ["has", "sv_anteil"], ["to-number", ["get", "sv_anteil"]],
+  ["*", ["/", ["to-number", ["get", "dtv_sv"]], ["to-number", ["get", "dtv_kfz"]]], 100],
+];
+// grau, wenn weder Anteil noch (SV & DTV>0) vorliegt.
+const hasSv = [
+  "any",
+  ["has", "sv_anteil"],
+  ["all", ["has", "dtv_sv"], ["has", "dtv_kfz"], [">", ["to-number", ["get", "dtv_kfz"]], 0]],
+];
 
-// Zweite Färbung: SV-Anteil (% Schwerverkehr), umschaltbar per Legenden-Toggle.
+// Wertebereich der zweiten Färbung (SV-Anteil %). SCALE (DTV, oben) und SCALE_SV =
+// [Schwelle, Standardfarbe]; die Schwellen gelten für beide Paletten.
 const SCALE_SV = [
   [0, "#1a9850"],
   [5, "#66bd63"],
@@ -88,21 +94,30 @@ const SCALE_SV = [
   [25, "#f46d43"],
   [30, "#d73027"],
 ];
-// SV-Anteil je Feature: direkt sv_anteil (%), sonst aus dtv_sv/dtv_kfz berechnet.
-const svShare = [
-  "case",
-  ["has", "sv_anteil"], ["to-number", ["get", "sv_anteil"]],
-  ["*", ["/", ["to-number", ["get", "dtv_sv"]], ["to-number", ["get", "dtv_kfz"]]], 100],
-];
-const svInterp = ["interpolate", ["linear"], svShare];
-for (const [v, c] of SCALE_SV) svInterp.push(v, c);
-// grau, wenn weder Anteil noch (SV & DTV>0) vorliegt.
-const hasSv = [
-  "any",
-  ["has", "sv_anteil"],
-  ["all", ["has", "dtv_sv"], ["has", "dtv_kfz"], [">", ["to-number", ["get", "dtv_kfz"]], 0]],
-];
-const svColorExpr = ["case", hasSv, svInterp, NODATA];
+// Barrierefreie Alternativrampe: RdYlBu (Blau=niedrig -> hell -> Rot=hoch). Ersetzt nur
+// das CVD-kritische Grün des Standard-Verlaufs durch Blau -> bleibt mehrfarbig UND bei
+// Rot-Grün-Schwäche unterscheidbar (worst Klassenpaar deutan ΔE 16.1 statt 1.3 bei Grün-Rot).
+const CB_STOPS = ["#4575b4", "#91bfdb", "#e0f3f8", "#ffffbf", "#fee090", "#fc8d59", "#d73027"];
+
+// interpolate-Färbung aus Wert + Schwellen/Farben; `stops` überschreibt die Farben (CB).
+function rampColor(valueExpr, hasExpr, scale, stops) {
+  const interp = ["interpolate", ["linear"], valueExpr];
+  scale.forEach(([v, c], i) => interp.push(v, stops ? stops[i] : c));
+  return ["case", hasExpr, interp, NODATA];
+}
+// Farb-Expression je Modus ("dtv"|"sv") und Palette (cb = barrierefrei).
+const colorExprFor = (m, cb) =>
+  m === "sv"
+    ? rampColor(svShare, hasSv, SCALE_SV, cb ? CB_STOPS : null)
+    : rampColor(["get", "dtv_kfz"], ["has", "dtv_kfz"], SCALE, cb ? CB_STOPS : null);
+// UBA-HVS: annualTrafficFlow (Kfz/Jahr) -> DTV-Äquivalent (÷365), gleiche DTV-Skala.
+const hvsColorExprFor = (cb) =>
+  rampColor(["/", ["to-number", ["get", "annualTrafficFlow"]], 365],
+    ["has", "annualTrafficFlow"], SCALE, cb ? CB_STOPS : null);
+
+// Initiale Färbung (DTV, Standardpalette) für die addLayer-Aufrufe.
+const colorExpr = colorExprFor("dtv", false);
+const hvsColorExpr = hvsColorExprFor(false);
 
 // Basemap: gehosteter OpenFreeMap-Positron-Style (keyless, kein lokales style.json).
 const map = new maplibregl.Map({
@@ -415,11 +430,12 @@ const DTV_LABELS = ["0", "3 000", "8 000", "15 000", "25 000", "40 000", "60 000
 const SV_LABELS = ["0", "5", "10", "15", "20", "25", "30+"]; // % Schwerverkehr
 
 let mode = "dtv";     // aktive Färbung: "dtv" | "sv"
+let cb = false;       // barrierefreie (CVD-sichere) Palette an/aus
 let legendRows = [];  // pro Modus neu aufgebaut
 let ndRow, cut;       // "keine Angabe" + Zoom-Cut-Hinweis (nur DTV)
 
-// Legenden-Skala + Titel für den aktiven Modus (neu) aufbauen.
-function renderLegend(m) {
+// Legenden-Skala + Titel für Modus + Palette (neu) aufbauen.
+function renderLegend(m, cb) {
   const scale = m === "sv" ? SCALE_SV : SCALE;
   const labels = m === "sv" ? SV_LABELS : DTV_LABELS;
   legendTitle.innerHTML =
@@ -430,7 +446,7 @@ function renderLegend(m) {
     const row = document.createElement("div");
     row.className = "legend-row";
     row.innerHTML =
-      `<span class="legend-swatch" style="background:${color}"></span>` +
+      `<span class="legend-swatch" style="background:${cb ? CB_STOPS[i] : color}"></span>` +
       `<span class="legend-label">${labels[i]}</span>`;
     legend.appendChild(row);
     legendRows.push({ el: row, value });
@@ -476,29 +492,38 @@ function updateLegendForZoom() {
   }
 }
 
-// Modus umschalten: Farb-Expression auf allen Datenebenen + Legende tauschen.
+// Färbung (Modus + Palette) auf allen Datenebenen anwenden + Legende neu bauen.
 const DATA_LAYERS = [
   ["svz-lines", "line-color"],
   ["svz-points", "circle-color"],
   ["bast-points", "circle-color"],
 ];
-const modeButtons = [...document.querySelectorAll("#legend-modes button")];
-function setMode(m) {
-  mode = m;
-  const expr = m === "sv" ? svColorExpr : colorExpr;
+function applyColors() {
+  const expr = colorExprFor(mode, cb);
   for (const [id, prop] of DATA_LAYERS) {
     if (map.getLayer(id)) map.setPaintProperty(id, prop, expr);
   }
-  // UBA-HVS kennt keinen SV -> im SV-Modus grau, sonst DTV≈-Färbung.
+  // UBA-HVS kennt keinen SV -> im SV-Modus grau, sonst DTV≈-Färbung (Palette folgt cb).
   if (map.getLayer("hvs-lines")) {
-    map.setPaintProperty("hvs-lines", "line-color", m === "sv" ? NODATA : hvsColorExpr);
+    map.setPaintProperty("hvs-lines", "line-color", mode === "sv" ? NODATA : hvsColorExprFor(cb));
   }
-  for (const b of modeButtons) b.classList.toggle("active", b.dataset.mode === m);
-  renderLegend(m);
+  renderLegend(mode, cb);
   updateLegendForZoom();
+}
+
+// DTV <-> SV-Anteil (Modus-Toggle).
+const modeButtons = [...document.querySelectorAll("#legend-modes button")];
+function setMode(m) {
+  mode = m;
+  for (const b of modeButtons) b.classList.toggle("active", b.dataset.mode === m);
+  applyColors();
 }
 for (const b of modeButtons) b.addEventListener("click", () => setMode(b.dataset.mode));
 
-renderLegend("dtv");
+// Barrierefreie Farben (CVD-sichere Blau-Rampe) an/aus.
+const cvdToggle = document.getElementById("cvd-toggle");
+cvdToggle.addEventListener("change", () => { cb = cvdToggle.checked; applyColors(); });
+
+renderLegend("dtv", false);
 map.on("zoom", updateLegendForZoom);
 updateLegendForZoom();

@@ -42,7 +42,7 @@ mit den Länder-Daten (v.a. bei den Bundesstraßen) wegschaltbar bleibt. Details
 
 ## Datenquellen der 16 Bundesländer
 
-Legende Status: ✅ live (implementiert) · 🔍 offen (Endpunkt gesucht) · ⛔ blockiert
+Legende Status: ✅ live (implementiert) · ⛔ blockiert
 (kein maschinenlesbarer DTV-Vektor). Zugang verlinkt den Endpunkt. Spalte **SV**
 (Schwerverkehr): `abs` = absolute Menge (`dtv_sv`) · `%` = Anteil (`sv_anteil`) · `–` keiner.
 
