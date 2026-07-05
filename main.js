@@ -310,41 +310,71 @@ map.on("load", () => {
 
   // Klick-Popup + Cursor für alle Daten-Layer.
   const fmt = (n) => (n == null ? "–" : Number(n).toLocaleString("de-DE"));
+  const pct = (num, den) =>
+    den ? ((Number(num) / Number(den)) * 100).toLocaleString("de-DE", { maximumFractionDigits: 1 }) : null;
+
+  // Straßenklasse-Kürzel -> Klartext; Quelle „DE" = bundesweiter BASt-Backbone.
+  const ROAD_CLASS = { A: "Autobahn", B: "Bundesstraße", L: "Landesstraße", K: "Kreisstraße", G: "Gemeindestraße" };
+  const providerLabel = (state) => (state === "DE" ? "BASt" : state);
+
+  // Metrik-Badge mit Erklär-Tooltip (hover) – DTV/DTVw/DTV≈ ausgeschrieben.
+  const METRIC_TITLE = {
+    DTV: "Durchschnittliche tägliche Verkehrsstärke (Kfz/24h, alle Tage)",
+    DTVw: "Durchschnittliche tägliche Verkehrsstärke werktags (Mo–Fr)",
+    "DTV≈": "Näherung aus Jahresmenge: Kfz/Jahr ÷ 365",
+  };
+  const metricBadge = (m) => `<span class="popup-metric" title="${METRIC_TITLE[m] || ""}">${m}</span>`;
+
+  // „SV" = Schwerverkehr; Label mit Erklär-Tooltip beim Hovern.
+  const svLabel = (t) => `<span class="popup-hint" title="Schwerverkehr: Lkw, Lastzüge, Busse (Kfz > 3,5 t)">${t}</span>`;
+
+  // „Hero"-Zeile: große Zahl + gedämpfte Einheit + Metrik-Badge.
+  const dtvHero = (val, metric) =>
+    `<div class="popup-dtv">${fmt(val)} <span class="popup-unit">Kfz/24h</span> ${metricBadge(metric)}</div>`;
+
+  const popup = (lngLat, html) =>
+    new maplibregl.Popup({ closeButton: false, maxWidth: "270px" })
+      .setLngLat(lngLat)
+      .setHTML(html)
+      .addTo(map);
+
   const onClick = (e) => {
     const p = e.features[0].properties;
     // UBA-Hauptverkehrsstraßen: annualTrafficFlow (Kfz/Jahr) -> DTV-Äquivalent (÷365).
     if (p.annualTrafficFlow != null) {
       const flow = Number(p.annualTrafficFlow);
-      new maplibregl.Popup({ closeButton: false })
-        .setLngLat(e.lngLat)
-        .setHTML(
-          `<div class="popup-road">Hauptverkehrsstraße</div>` +
-          `<div class="popup-dtv">${fmt(Math.round(flow / 365))} Kfz/24h <span class="popup-meta">(DTV≈)</span></div>` +
+      popup(
+        e.lngLat,
+        `<div class="popup-road">Hauptverkehrsstraße</div>` +
+          dtvHero(Math.round(flow / 365), "DTV≈") +
           `<div class="popup-meta">${fmt(flow)} Kfz/Jahr · © UBA · END 2021</div>`,
-        )
-        .addTo(map);
+      );
       return;
     }
     const road = p.road_no || `${p.road_class}-Straße`;
-    const sv =
-      p.dtv_sv != null
-        ? `<div class="popup-meta">davon SV: ${fmt(p.dtv_sv)}</div>`
-        : p.sv_anteil != null
-          ? `<div class="popup-meta">SV-Anteil: ${p.sv_anteil} %</div>`
-          : "";
+    const klass = ROAD_CLASS[p.road_class] || `Klasse ${p.road_class}`;
+
+    // Schwerverkehr: absolut (+ berechneter Anteil) ODER nur Anteil %.
+    let sv = "";
+    if (p.dtv_sv != null) {
+      const share = pct(p.dtv_sv, p.dtv_kfz);
+      sv = `<div class="popup-sv">${svLabel("SV")} ${fmt(p.dtv_sv)}${share ? ` · ${share} %` : ""}</div>`;
+    } else if (p.sv_anteil != null) {
+      sv = `<div class="popup-sv">${svLabel("SV-Anteil")} ${p.sv_anteil} %</div>`;
+    }
+
     const dtvLine =
       p.dtv_kfz != null
-        ? `<div class="popup-dtv">${fmt(p.dtv_kfz)} Kfz/24h <span class="popup-meta">(${p.metric})</span></div>`
-        : `<div class="popup-meta">keine DTV-Angabe (${p.metric})</div>`;
-    new maplibregl.Popup({ closeButton: false })
-      .setLngLat(e.lngLat)
-      .setHTML(
-        `<div class="popup-road">${road}</div>` +
+        ? dtvHero(p.dtv_kfz, p.metric)
+        : `<div class="popup-meta">keine DTV-Angabe ${metricBadge(p.metric)}</div>`;
+
+    popup(
+      e.lngLat,
+      `<div class="popup-road">${road}</div>` +
         dtvLine +
         sv +
-        `<div class="popup-meta">Klasse ${p.road_class} · ${p.year} · ${p.state}</div>`,
-      )
-      .addTo(map);
+        `<div class="popup-meta">${klass} · ${p.year} · ${providerLabel(p.state)}</div>`,
+    );
   };
   for (const id of ["svz-lines", "svz-points", "bast-points", "hvs-lines"]) {
     map.on("click", id, onClick);

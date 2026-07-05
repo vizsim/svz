@@ -83,11 +83,17 @@ tr.src-hint td { padding: 0 0 4px 24px; font-size: 10px; color: #a8a8a8; font-st
 #legend-cut { font-size: 10px; color: #888; font-style: italic; margin-top: 8px; }
 
 .maplibregl-popup-content {
-  font-size: 12px; line-height: 1.5; padding: 10px 12px; border-radius: 8px;
+  font-size: 13px; line-height: 1.5; padding: 11px 14px; border-radius: 9px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.18);
 }
-.popup-road { font-weight: 700; font-size: 13px; color: #111; }
-.popup-dtv { color: #d73027; font-weight: 600; }
-.popup-meta { color: #666; }
+.popup-road { font-weight: 700; font-size: 15px; color: #111; }
+.popup-dtv { color: #d73027; font-weight: 700; font-size: 16px; margin: 3px 0 1px; }
+.popup-unit { color: #9a9a9a; font-weight: 600; font-size: 11px; }
+.popup-sv { color: #555; font-size: 12px; margin-top: 1px; }
+.popup-meta { color: #777; font-size: 11.5px; margin-top: 1px; }
+/* Metrik-Badge + SV-Label: gepunktete Unterstreichung = „hover für Erklärung". */
+.popup-metric { color: #9a9a9a; font-weight: 600; font-size: 11px; cursor: help; border-bottom: 1px dotted #c4c4c4; }
+.popup-hint { color: #444; cursor: help; border-bottom: 1px dotted #c4c4c4; }
 
 /* ---- schmale Screens / Mobile ------------------------------------------- */
 @media (max-width: 640px) {
