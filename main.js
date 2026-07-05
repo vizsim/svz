@@ -203,7 +203,8 @@ map.on("load", () => {
   map.addSource("svz", {
     type: "vector",
     url: "pmtiles://" + PMTILES_URL,
-    attribution: "Verkehrsmengen: Straßenbauverwaltungen der Länder",
+    attribution:
+      'Verkehrsmengen: <a href="https://github.com/vizsim/svz#datenquellen-der-16-bundesl%C3%A4nder" target="_blank" rel="noopener">Straßenbauverwaltungen der Länder</a>',
   });
 
   // Beide Daten-Layer direkt unter die erste Symbol-(Label-)Ebene legen.
@@ -254,7 +255,8 @@ map.on("load", () => {
   map.addSource("bast", {
     type: "vector",
     url: "pmtiles://" + BAST_PMTILES_URL,
-    attribution: "Bundesfernstraßen: © BASt",
+    attribution:
+      'Bundesfernstraßen: © <a href="https://www.bast.de/DE/Publikationen/Statistik/Verkehrsdaten/Manuelle-Zaehlung.html" target="_blank" rel="noopener">BASt</a>',
   });
   map.addLayer(
     {
@@ -282,7 +284,7 @@ map.on("load", () => {
     type: "vector",
     url: "pmtiles://" + HVS_PMTILES_URL,
     attribution:
-      'Hauptverkehrsstraßen: © <a href="https://gis.uba.de/maps/resources/apps/laermkartierung/index.html?lang=de" target="_blank" rel="noopener">UBA</a> (END 2021)',
+      'Hauptverkehrsstraßen: © <a href="https://gis.uba.de/maps/resources/apps/laermkartierung/index.html?lang=de" target="_blank" rel="noopener">UBA</a>',
   });
   map.addLayer(
     {
