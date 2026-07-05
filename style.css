@@ -36,6 +36,11 @@ body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
 .src-lic a { color: #4576c4; text-decoration: none; }
 .src-lic a:hover { text-decoration: underline; }
 .src-lic-plain { color: #999; }
+/* „Zugang"-Spalte: Format-Label(s) verlinkt auf den Endpunkt (README-Spalte). */
+.src-access { font-size: 11px; }
+.src-access a { color: #4576c4; text-decoration: none; }
+.src-access a:hover { text-decoration: underline; }
+.src-access .sep { color: #c4c4c4; }
 
 /* BASt-Backbone unten abgesetzt (kein Bundesland). */
 tbody.bast-body td { border-top: 1px solid #d5d5d5; padding-top: 5px; }
@@ -92,7 +97,8 @@ tr.src-hint td { padding: 0 0 4px 24px; font-size: 10px; color: #a8a8a8; font-st
   }
   #title h1 { font-size: 16px; }
   #title p { font-size: 11px; }
-  #sources-body { max-height: 42vh; }
+  /* zusätzliche „Zugang"-Spalte kann schmale Screens sprengen -> horizontal scrollbar */
+  #sources-body { max-height: 42vh; overflow-x: auto; }
   .src-row td { padding-right: 6px; }
 
   #legend { bottom: 8px; left: 8px; padding: 8px 10px; min-width: 0; }

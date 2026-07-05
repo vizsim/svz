@@ -32,20 +32,35 @@ const LICENSES = {
 // Quellen für das Panel (Reihenfolge = Anzeige). `code` = state-Feld in den Daten;
 // `kind` steuert das Toggle: Länder filtern die geteilten Layer nach state, BASt ist
 // ein eigener Layer (Visibility). Berlin ist DTVw (nur Werktage).
+// `access` = README-Spalte „Zugang (URL)": Format-Label(s) + Endpunkt-URL (mehrere
+// Quellen je Land -> mehrere Einträge, im Panel mit „ · " getrennt verlinkt).
 const SOURCES = [
-  { code: "BW", name: "Baden-Württemberg", year: 2024, metric: "DTV", license: "dl-de/by-2.0", kind: "land" },
-  { code: "BY", name: "Bayern", year: 2021, metric: "DTV", license: "CC-BY-4.0", kind: "land" },
-  { code: "BE", name: "Berlin", year: 2023, metric: "DTVw", license: "dl-de/zero-2.0", kind: "land" },
-  { code: "BB", name: "Brandenburg", year: 2021, metric: "DTV", license: "dl-de/by-2.0", kind: "land" },
-  { code: "HH", name: "Hamburg", year: 2019, metric: "DTV", license: "dl-de/by-2.0", kind: "land" },
-  { code: "NI", name: "Niedersachsen", year: 2021, metric: "DTV", license: "CC-BY-4.0", kind: "land" },
-  { code: "NW", name: "Nordrhein-Westfalen", year: 2019, metric: "DTV", license: "dl-de/by-2.0", kind: "land" },
-  { code: "SL", name: "Saarland", year: 2021, metric: "DTV", license: "CC-BY-4.0", kind: "land" },
-  { code: "SN", name: "Sachsen", year: 2021, metric: "DTV", license: "dl-de/by-2.0", kind: "land" },
-  { code: "ST", name: "Sachsen-Anhalt", year: 2021, metric: "DTV", license: "dl-de/by-2.0", kind: "land" },
-  { code: "TH", name: "Thüringen", year: 2015, metric: "DTV", license: "dl-de/by-2.0", kind: "land" },
-  { code: "DE", name: "BASt-Backbone (A+B)", year: 2021, metric: "DTV", license: "© BASt", kind: "bast", layer: "bast-points" },
-  { code: "HVS", name: "UBA-Hauptverkehrsstraßen", year: 2021, metric: "DTV≈", license: "© UBA", kind: "hvs", layer: "hvs-lines", default: false, minZoom: 9, hint: "nur Straßen > 3 Mio Kfz/Jahr" },
+  { code: "BW", name: "Baden-Württemberg", year: 2024, metric: "DTV", license: "dl-de/by-2.0", kind: "land",
+    access: [{ l: "GeoJSON", u: "https://mobidata-bw.de/karten_geojsons/maps/count_car/SVZ-Zaehlstellen_231011_augmented_SVZ2024.geojson" }] },
+  { code: "BY", name: "Bayern", year: 2021, metric: "DTV", license: "CC-BY-4.0", kind: "land",
+    access: [{ l: "WFS", u: "https://gisportal-stmb.bayern.de/server/services/WFS/BAYSIS_Verkehrsdaten/MapServer/WFSServer" }] },
+  { code: "BE", name: "Berlin", year: 2023, metric: "DTVw", license: "dl-de/zero-2.0", kind: "land",
+    access: [{ l: "WFS", u: "https://gdi.berlin.de/services/wfs/verkehrsmengen_2023" }] },
+  { code: "BB", name: "Brandenburg", year: 2021, metric: "DTV", license: "dl-de/by-2.0", kind: "land",
+    access: [{ l: "WFS", u: "https://inspire.brandenburg.de/services/zaehlstellen_wfs" }] },
+  { code: "HH", name: "Hamburg", year: 2019, metric: "DTV", license: "dl-de/by-2.0", kind: "land",
+    access: [{ l: "WFS", u: "https://geodienste.hamburg.de/HH_WFS_Verkehrsmengen" }] },
+  { code: "NI", name: "Niedersachsen", year: 2021, metric: "DTV", license: "CC-BY-4.0", kind: "land",
+    access: [{ l: "ZIP", u: "https://map.strassenbau.niedersachsen.de/zip/DE-NI-SBV_Downloadservice_SVZ_Zaehlstellenbereiche_2021.zip" }] },
+  { code: "NW", name: "Nordrhein-Westfalen", year: 2019, metric: "DTV", license: "dl-de/by-2.0", kind: "land",
+    access: [{ l: "ZIP", u: "https://www.opengeodata.nrw.de/produkte/transport_verkehr/strassennetz/Verkehrswerte2019HR_EPSG25832_Shape.zip" }] },
+  { code: "SL", name: "Saarland", year: 2021, metric: "DTV", license: "CC-BY-4.0", kind: "land",
+    access: [{ l: "WFS", u: "https://geoportal.saarland.de/arcgis/services/Internet/Verkehr_WFS/MapServer/WFSServer" }] },
+  { code: "SN", name: "Sachsen", year: 2021, metric: "DTV", license: "dl-de/by-2.0", kind: "land",
+    access: [{ l: "ZIP", u: "https://www.list.smwa.sachsen.de/gdi/download/DE-SN-SBV-SVZ2021.zip" }] },
+  { code: "ST", name: "Sachsen-Anhalt", year: 2021, metric: "DTV", license: "dl-de/by-2.0", kind: "land",
+    access: [{ l: "WFS", u: "https://www.geodatenportal.sachsen-anhalt.de/gfds/ws/wfs/a78d7bc1-ffbb-cf76/GDI-LSA_LSBB_STRASSENNETZE/ows.wfs" }, { l: "Excel", u: "https://lsbb.sachsen-anhalt.de/fileadmin/Bibliothek/Politik_und_Verwaltung/Landesbetriebe/LSBB/Service/Strassenverkehrszaehlungen/Dateien_2025/Ergebnisse_SVZ_2021.xlsx" }] },
+  { code: "TH", name: "Thüringen", year: 2015, metric: "DTV", license: "dl-de/by-2.0", kind: "land",
+    access: [{ l: "WFS", u: "https://www.geoproxy.geoportal-th.de/geoproxy/services/STRNETZ_SVZ_wfs" }] },
+  { code: "DE", name: "BASt-Backbone (A+B)", year: 2021, metric: "DTV", license: "© BASt", kind: "bast", layer: "bast-points",
+    access: [{ l: "Excel A", u: "https://www.bast.de/DE/Publikationen/Statistik/Verkehrsdaten/2021/Autobahnen-2021.xlsx?__blob=publicationFile&v=1" }, { l: "Excel B", u: "https://www.bast.de/DE/Publikationen/Statistik/Verkehrsdaten/2021/Bundesstrassen-2021.xlsx?__blob=publicationFile&v=1" }] },
+  { code: "HVS", name: "UBA-Hauptverkehrsstraßen", year: 2021, metric: "DTV≈", license: "© UBA", kind: "hvs", layer: "hvs-lines", default: false, minZoom: 9, hint: "nur Straßen > 3 Mio Kfz/Jahr",
+    access: [{ l: "Viewer", u: "https://gis.uba.de/maps/resources/apps/laermkartierung/index.html?lang=de" }] },
 ];
 
 // pmtiles-Protokoll registrieren.
@@ -90,6 +105,12 @@ const licenseCell = (code) => {
     : `<span class="src-lic-plain">${code}</span>`;
 };
 
+// „Zugang"-Zelle: Format-Label(s) als Links zum Endpunkt, mehrere mit „ · " getrennt.
+const accessCell = (items = []) =>
+  items
+    .map((a) => `<a href="${a.u}" target="_blank" rel="noopener">${a.l}</a>`)
+    .join('<span class="sep"> · </span>');
+
 for (const s of SOURCES) {
   const tr = document.createElement("tr");
   tr.className = "src-row";
@@ -98,7 +119,8 @@ for (const s of SOURCES) {
     `<td class="src-name">${s.name}</td>` +
     `<td class="src-year">${s.year}</td>` +
     `<td class="src-metric">${s.metric}</td>` +
-    `<td class="src-lic">${licenseCell(s.license)}</td>`;
+    `<td class="src-lic">${licenseCell(s.license)}</td>` +
+    `<td class="src-access">${accessCell(s.access)}</td>`;
   const cb = tr.querySelector("input");
   cb.checked = s.default !== false; // HVS startet ausgeblendet (default:false)
   s.el = cb;
@@ -113,7 +135,7 @@ for (const s of SOURCES) {
   if (s.hint) {
     const ht = document.createElement("tr");
     ht.className = "src-hint";
-    ht.innerHTML = `<td colspan="5"></td>`;
+    ht.innerHTML = `<td colspan="6"></td>`;
     parent.append(ht);
     s.hintEl = ht;
   }
