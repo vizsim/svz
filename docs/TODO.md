@@ -69,6 +69,22 @@ Gemeinsamer Ausweg für all diese: der **BASt-Backbone** deckt A/B bundesweit ab
 nachgeordnete Netz (L/K) bleibt bei diesen Ländern lückenhaft, bis eine DTV-Tabelle
 (mit VNK/NNK oder Zählstellennr) auftaucht — dann Join wie bei ST/TH.
 
+## Kommunale Daten (Ebene 3, Issue #1)
+
+Konzept + Stand: [Konzept_kommunale_daten.md](Konzept_kommunale_daten.md). Umgesetzt:
+Köln, Düsseldorf (Linien), Ravensburg, Weingarten, Berg, Baienfurt, Baindt (Punkte,
+24h) in `svz_kommunal.pmtiles`; Panel nach Ebenen gruppiert, Hinzoomen, Übersichts-Marker.
+Lausitz (DiSTILL) geprüft und verworfen (identisch mit bb/sn). Offen:
+- **Frankfurt** (HE): WFS liefert 500 → regelmäßig prüfen (`status: research`).
+- **Rad/Fuß** aus den MobiData-Excels (optionale Spalten `dtv_rad`/`dtv_fuss` + Legenden-Modus)
+  – vom Nutzer vorerst zurückgestellt.
+- **Eigener Stil für `metric=24h`** (Einzelzählung ≠ DTV), z.B. gestrichelt.
+- **SV Ravensburg/Weingarten** auffällig hoch (Median 14–18 %) – Definition beim Amt erfragen.
+- **Dedup Kommune ↔ Land** im Stadtgebiet (Köln/Düsseldorf über NRW-Linien) – räumlicher
+  Clip oder Vorrangregel.
+- Dresden: WFS-Knoten des Themenstadtplan-Themas `STA_VERKEHRSMENGEN` finden.
+- Panel-Optionen ab ~15 Kommunen: Gruppe zugeklappt, „nur im Ausschnitt", Suchfeld.
+
 ## Sonstiges
 - Punkt-Quellen erledigt: BW + SL als eigener `svz_points`-Layer (Kreis-Layer im Frontend).
 - Frontend: Filter-UI (Jahr / Bundesland / Klasse / Metrik DTV vs. DTVw getrennt).

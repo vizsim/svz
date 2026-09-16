@@ -1,14 +1,46 @@
 // Verkehrsmengenkarte – MapLibre-Viewer.
-// Basemap: gehostetes OpenFreeMap-Positron. Daten in ZWEI PMTiles/Quellen:
-//   svz  = Länder (Layer `svz` Linien + `svz_points` Punkte)
-//   bast = bundesweiter BASt-Backbone (Layer `bast`, A+B), separat schaltbar.
+// Basemap: gehostetes OpenFreeMap-Positron. Daten in DREI PMTiles, eines je Ebene:
+//   land    = Länder        (svz_de.pmtiles:       Layer `svz` Linien + `svz_points` Punkte)
+//   kommune = Kommunen      (svz_kommunal.pmtiles: Layer `kommunal` Linien + `kommunal_points`)
+//   bund    = BASt-Backbone (svz_bast.pmtiles:     Layer `bast`, Bundesfernstraßen A+B)
+// WELCHE Quellen es gibt (Name, Ebene, Land, Jahr, Lizenz, Zugang, BBox zum Hinzoomen),
+// kommt aus pipeline/data/manifest.json (`svz manifest`, gespeist aus sources.yaml) —
+// hier wird KEINE Quellenliste mehr gepflegt. Einzige Ausnahme: die extern gehostete
+// UBA-HVS (kein Pipeline-Produkt) steht fest im Code.
 // Alle Daten-Layer hängen UNTER der ersten Symbol-(Label-)Ebene -> Labels oben.
-const PMTILES_URL = "pipeline/data/svz/svz_de.pmtiles";
-const BAST_PMTILES_URL = "pipeline/data/svz/svz_bast.pmtiles";
+const DATA_DIR = "pipeline/data/";
+const MANIFEST_URL = DATA_DIR + "manifest.json";
 // UBA-Hauptverkehrsstraßen (END 2021, bundesweit) – gehostet aus unfallkarte, als
 // Fallback/Backbone. Attribut annualTrafficFlow (Kfz/Jahr), Layer `lines`.
 const HVS_PMTILES_URL =
   "https://tiles.vizsim.de/file/unfallkarte-data-v2/uba/hvs_verkehrsmengen.pmtiles";
+
+// Ebenen: Reihenfolge im Panel, PMTiles-Datensatz (manifest-Key) und Layer
+// [id, typ, source-layer] — die source-layer-Namen sind der Vertrag mit tiles.yaml.
+// `minZoom` = Mindest-Zoom der Kacheln (tiles.yaml) -> Hinweis im Gruppen-Kopf.
+// Wording: „SVZ" (amtliche Straßenverkehrszählung) nur für Länder + Bund; die Städte
+// zählen selbst -> „kommunale Zählungen", bewusst abgesetzt.
+// `marker`: unterhalb von minZoom je Quelle einen beschrifteten Übersichts-Marker zeigen.
+const LEVELS = {
+  land: {
+    label: "Länder (SVZ)",
+    dataset: "svz_de",
+    layers: [["svz-lines", "line", "svz"], ["svz-points", "circle", "svz_points"]],
+  },
+  kommune: {
+    label: "Kommunen (eigene Zählungen)",
+    dataset: "svz_kommunal",
+    layers: [["kommunal-lines", "line", "kommunal"], ["kommunal-points", "circle", "kommunal_points"]],
+    minZoom: 8, marker: true,
+  },
+  bund: {
+    label: "Bund (BASt)",
+    dataset: "svz_bast",
+    layers: [["bast-points", "circle", "bast"]],
+  },
+};
+const LEVEL_ORDER = ["land", "kommune", "bund"];
+const ALL_LAYERS = LEVEL_ORDER.flatMap((l) => LEVELS[l].layers);
 
 // Farbskala: niedrig (grün) -> hoch (rot). Ein Array für Layer-Paint UND Legende.
 const SCALE = [
@@ -29,39 +61,28 @@ const LICENSES = {
   offen: null,
 };
 
-// Quellen für das Panel (Reihenfolge = Anzeige). `code` = state-Feld in den Daten;
-// `kind` steuert das Toggle: Länder filtern die geteilten Layer nach state, BASt ist
-// ein eigener Layer (Visibility). Berlin ist DTVw (nur Werktage).
-// `access` = README-Spalte „Zugang (URL)": Format-Label(s) + Endpunkt-URL (mehrere
-// Quellen je Land -> mehrere Einträge, im Panel mit „ · " getrennt verlinkt).
-const SOURCES = [
-  { code: "BW", name: "Baden-Württemberg", year: 2024, metric: "DTV", license: "dl-de/by-2.0", kind: "land",
-    access: [{ l: "GeoJSON", u: "https://mobidata-bw.de/karten_geojsons/maps/count_car/SVZ-Zaehlstellen_231011_augmented_SVZ2024.geojson" }] },
-  { code: "BY", name: "Bayern", year: 2021, metric: "DTV", license: "CC-BY-4.0", kind: "land",
-    access: [{ l: "WFS", u: "https://gisportal-stmb.bayern.de/server/services/WFS/BAYSIS_Verkehrsdaten/MapServer/WFSServer" }] },
-  { code: "BE", name: "Berlin", year: 2023, metric: "DTVw", license: "dl-de/zero-2.0", kind: "land",
-    access: [{ l: "WFS", u: "https://gdi.berlin.de/services/wfs/verkehrsmengen_2023" }] },
-  { code: "BB", name: "Brandenburg", year: 2021, metric: "DTV", license: "dl-de/by-2.0", kind: "land",
-    access: [{ l: "WFS", u: "https://inspire.brandenburg.de/services/zaehlstellen_wfs" }] },
-  { code: "HH", name: "Hamburg", year: 2019, metric: "DTV", license: "dl-de/by-2.0", kind: "land",
-    access: [{ l: "WFS", u: "https://geodienste.hamburg.de/HH_WFS_Verkehrsmengen" }] },
-  { code: "NI", name: "Niedersachsen", year: 2021, metric: "DTV", license: "CC-BY-4.0", kind: "land",
-    access: [{ l: "ZIP", u: "https://map.strassenbau.niedersachsen.de/zip/DE-NI-SBV_Downloadservice_SVZ_Zaehlstellenbereiche_2021.zip" }] },
-  { code: "NW", name: "Nordrhein-Westfalen", year: 2019, metric: "DTV", license: "dl-de/by-2.0", kind: "land",
-    access: [{ l: "ZIP", u: "https://www.opengeodata.nrw.de/produkte/transport_verkehr/strassennetz/Verkehrswerte2019HR_EPSG25832_Shape.zip" }] },
-  { code: "SL", name: "Saarland", year: 2021, metric: "DTV", license: "CC-BY-4.0", kind: "land",
-    access: [{ l: "WFS", u: "https://geoportal.saarland.de/arcgis/services/Internet/Verkehr_WFS/MapServer/WFSServer" }] },
-  { code: "SN", name: "Sachsen", year: 2021, metric: "DTV", license: "dl-de/by-2.0", kind: "land",
-    access: [{ l: "ZIP", u: "https://www.list.smwa.sachsen.de/gdi/download/DE-SN-SBV-SVZ2021.zip" }] },
-  { code: "ST", name: "Sachsen-Anhalt", year: 2021, metric: "DTV", license: "dl-de/by-2.0", kind: "land",
-    access: [{ l: "WFS", u: "https://www.geodatenportal.sachsen-anhalt.de/gfds/ws/wfs/a78d7bc1-ffbb-cf76/GDI-LSA_LSBB_STRASSENNETZE/ows.wfs" }, { l: "Excel", u: "https://lsbb.sachsen-anhalt.de/fileadmin/Bibliothek/Politik_und_Verwaltung/Landesbetriebe/LSBB/Service/Strassenverkehrszaehlungen/Dateien_2025/Ergebnisse_SVZ_2021.xlsx" }] },
-  { code: "TH", name: "Thüringen", year: 2015, metric: "DTV", license: "dl-de/by-2.0", kind: "land",
-    access: [{ l: "WFS", u: "https://www.geoproxy.geoportal-th.de/geoproxy/services/STRNETZ_SVZ_wfs" }] },
-  { code: "DE", name: "BASt-Backbone (A+B)", year: 2021, metric: "DTV", license: "© BASt", kind: "bast", layer: "bast-points",
-    access: [{ l: "Excel A", u: "https://www.bast.de/DE/Publikationen/Statistik/Verkehrsdaten/2021/Autobahnen-2021.xlsx?__blob=publicationFile&v=1" }, { l: "Excel B", u: "https://www.bast.de/DE/Publikationen/Statistik/Verkehrsdaten/2021/Bundesstrassen-2021.xlsx?__blob=publicationFile&v=1" }] },
-  { code: "HVS", name: "UBA-Hauptverkehrsstraßen", year: 2021, metric: "DTV≈", license: "© UBA", kind: "hvs", layer: "hvs-lines", default: false, minZoom: 9, hint: "nur Straßen > 3 Mio Kfz/Jahr",
-    access: [{ l: "Viewer", u: "https://gis.uba.de/maps/resources/apps/laermkartierung/index.html?lang=de" }] },
-];
+// --- Quellen aus dem Manifest (status: live) + fest verdrahtete UBA-HVS ---------------
+const manifest = await fetch(MANIFEST_URL).then((r) => r.json()).catch(() => ({}));
+const SOURCES = Object.entries(manifest._sources || {})
+  .filter(([, s]) => s.status === "live" && LEVELS[s.level])
+  .map(([code, s]) => ({
+    code, name: s.name, level: s.level, state: s.state, year: s.year, metric: s.metric,
+    license: s.license, bbox: s.bbox, n: s.n,
+    access: (s.access || []).map((a) => ({ l: a.label, u: a.url })),
+  }));
+SOURCES.push({
+  code: "hvs", name: "UBA-Hauptverkehrsstraßen", level: "bund", year: 2021, metric: "DTV≈",
+  license: "© UBA", layer: "hvs-lines", default: false, minZoom: 9, hint: "nur Straßen > 3 Mio Kfz/Jahr",
+  access: [{ l: "Viewer", u: "https://gis.uba.de/maps/resources/apps/laermkartierung/index.html?lang=de" }],
+});
+// Länder/Kommunen alphabetisch; Bund in Manifest-Reihenfolge (BASt vor HVS).
+const collator = new Intl.Collator("de");
+const GROUPS = LEVEL_ORDER.map((level) => {
+  const items = SOURCES.filter((s) => s.level === level);
+  if (level !== "bund") items.sort((a, b) => collator.compare(a.name, b.name));
+  return { level, sources: items };
+});
+const SRC = Object.fromEntries(SOURCES.map((s) => [s.code, s]));
 
 // pmtiles-Protokoll registrieren.
 const protocol = new pmtiles.Protocol();
@@ -134,10 +155,15 @@ window.map = map;
 map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
 map.addControl(new maplibregl.ScaleControl({ unit: "metric" }), "bottom-right");
 
-// --- Quellen-Panel (Tabelle: Land · Jahr · Metrik · Lizenz; ein-/ausblenden je Quelle) ---
+// --- Titelzeile: SVZ (Länder + BASt) klar getrennt von den kommunalen Zählungen -------
+const count = (level) => GROUPS.find((g) => g.level === level).sources.length;
+document.getElementById("state-line").textContent =
+  `SVZ: ${count("land")} Länder + BASt · dazu kommunale Zählungen: ${count("kommune")} Kommunen`;
+
+// --- Quellen-Panel: je Ebene eine Gruppe (Kopf mit Gruppen-Checkbox + Auf-/Zuklappen),
+//     darunter die Quellen (Name · Jahr · Lizenz · Zugang, ⌖ = hinzoomen) ---------------
 const srcAll = document.getElementById("src-all");
-const srcList = document.getElementById("sources-list");        // Länder
-const srcBastBody = document.getElementById("sources-bast-body"); // BASt, abgesetzt
+const srcTable = document.getElementById("sources-table");
 
 const licenseCell = (code) => {
   const url = LICENSES[code];
@@ -152,33 +178,75 @@ const accessCell = (items = []) =>
     .map((a) => `<a href="${a.u}" target="_blank" rel="noopener">${a.l}</a>`)
     .join('<span class="sep"> · </span>');
 
-for (const s of SOURCES) {
-  const tr = document.createElement("tr");
-  tr.className = "src-row";
-  tr.innerHTML =
+// Auf die BBox einer Quelle zoomen (Manifest: [W,S,E,N]); Kommunen sind klein -> maxZoom.
+const zoomTo = (s) =>
+  map.fitBounds([[s.bbox[0], s.bbox[1]], [s.bbox[2], s.bbox[3]]],
+    { padding: 60, maxZoom: s.level === "kommune" ? 13 : 9, duration: 900 });
+// Fadenkreuz-Icon als Inline-SVG (Unicode ⌖ fehlt in vielen Systemschriften -> Tofu).
+const ZOOM_ICON =
+  '<svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">' +
+  '<circle cx="8" cy="8" r="4"/><path d="M8 1v3M8 12v3M1 8h3M12 8h3"/></svg>';
+
+for (const g of GROUPS) {
+  const lvl = LEVELS[g.level];
+  const tbody = document.createElement("tbody");
+  tbody.className = "src-group";
+  tbody.dataset.level = g.level;
+
+  // Gruppen-Kopf: Checkbox (alle der Ebene), Klapp-Pfeil, Label, Anzahl, Zoom-Hinweis.
+  const head = document.createElement("tr");
+  head.className = "src-group-head";
+  head.innerHTML =
     `<td><input type="checkbox" checked></td>` +
-    `<td class="src-name">${s.name}</td>` +
-    `<td class="src-year">${s.year}</td>` +
-    `<td class="src-lic">${licenseCell(s.license)}</td>` +
-    `<td class="src-access">${accessCell(s.access)}</td>`;
-  const cb = tr.querySelector("input");
-  cb.checked = s.default !== false; // HVS startet ausgeblendet (default:false)
-  s.el = cb;
-  cb.addEventListener("change", applySources);
-  tr.addEventListener("click", (e) => {
-    if (e.target.closest("a") || e.target === cb) return; // Lizenz-Link/Checkbox nicht abfangen
-    cb.checked = !cb.checked;
+    `<td colspan="4"><button type="button" class="src-group-toggle" aria-expanded="true">▾</button>` +
+    `${lvl.label} <span class="src-count">${g.sources.length}</span>` +
+    `<span class="src-group-hint"></span></td>`;
+  g.cb = head.querySelector("input");
+  g.hintEl = head.querySelector(".src-group-hint");
+  const toggle = head.querySelector(".src-group-toggle");
+  const setOpen = (open) => {
+    tbody.classList.toggle("collapsed", !open);
+    toggle.textContent = open ? "▾" : "▸";
+    toggle.setAttribute("aria-expanded", String(open));
+  };
+  toggle.addEventListener("click", () => setOpen(tbody.classList.contains("collapsed")));
+  g.cb.addEventListener("change", () => {
+    for (const s of g.sources) s.el.checked = g.cb.checked;
     applySources();
   });
-  const parent = s.kind === "land" ? srcList : srcBastBody; // Backbones (BASt, HVS) unten
-  parent.append(tr);
-  if (s.hint) {
-    const ht = document.createElement("tr");
-    ht.className = "src-hint";
-    ht.innerHTML = `<td colspan="5"></td>`;
-    parent.append(ht);
-    s.hintEl = ht;
+  tbody.append(head);
+
+  for (const s of g.sources) {
+    const tr = document.createElement("tr");
+    tr.className = "src-row";
+    const state = s.level === "kommune" ? `<span class="src-state">${s.state}</span>` : "";
+    const zoom = s.bbox ? `<button type="button" class="src-zoom" title="hinzoomen">${ZOOM_ICON}</button>` : "";
+    tr.innerHTML =
+      `<td><input type="checkbox" checked></td>` +
+      `<td class="src-name">${s.name}${state}${zoom}</td>` +
+      `<td class="src-year">${s.year}</td>` +
+      `<td class="src-lic">${licenseCell(s.license)}</td>` +
+      `<td class="src-access">${accessCell(s.access)}</td>`;
+    const cb = tr.querySelector("input");
+    cb.checked = s.default !== false; // HVS startet ausgeblendet (default:false)
+    s.el = cb;
+    cb.addEventListener("change", applySources);
+    tr.querySelector(".src-zoom")?.addEventListener("click", (e) => { e.stopPropagation(); zoomTo(s); });
+    tr.addEventListener("click", (e) => {
+      if (e.target.closest("a, button") || e.target === cb) return; // Links/Buttons nicht abfangen
+      cb.checked = !cb.checked;
+      applySources();
+    });
+    tbody.append(tr);
+    if (s.hint) {
+      const ht = document.createElement("tr");
+      ht.className = "src-hint";
+      ht.innerHTML = `<td colspan="5"></td>`;
+      tbody.append(ht);
+      s.hintEl = ht;
+    }
   }
+  srcTable.append(tbody);
 }
 
 srcAll.addEventListener("change", () => {
@@ -203,18 +271,41 @@ if (window.matchMedia("(max-width: 640px)").matches) {
   srcToggle.setAttribute("aria-expanded", "false");
 }
 
-// Länder filtern die geteilten Layer nach `state`; BASt schaltet seinen eigenen Layer.
+// Panel-Höhe: so hoch wie nötig, aber nie über die Legende — max-height = Abstand
+// Panel-Oberkante -> Legenden-Oberkante (minus Luft); die Quellenliste scrollt intern.
+// Reagiert auf Fenstergröße und auf Höhenänderungen der Legende (DTV/SV-Umschaltung).
+const titleEl = document.getElementById("title");
+const legendEl = document.getElementById("legend");
+function fitPanel() {
+  const top = titleEl.getBoundingClientRect().top;
+  const legendTop = legendEl.getBoundingClientRect().top;
+  titleEl.style.maxHeight = `${Math.max(140, legendTop - top - 10)}px`;
+}
+window.addEventListener("resize", fitPanel);
+new ResizeObserver(fitPanel).observe(legendEl);
+fitPanel();
+
+// Alle Pipeline-Layer filtern nach `source` (Schlüssel aus sources.yaml) — egal ob Land,
+// Kommune oder BASt; nur die extern gehostete HVS schaltet ihren Layer per Visibility.
 function applySources() {
-  const states = SOURCES.filter((s) => s.kind === "land" && s.el.checked).map((s) => s.code);
-  const filt = ["in", ["get", "state"], ["literal", states]];
-  for (const id of ["svz-lines", "svz-points"]) {
+  const on = SOURCES.filter((s) => s.el.checked && !s.layer).map((s) => s.code);
+  const filt = ["in", ["get", "source"], ["literal", on]];
+  for (const [id] of ALL_LAYERS) {
     if (map.getLayer(id)) map.setFilter(id, filt);
   }
-  // Backbone-Layer (BASt-Punkte, UBA-HVS-Linien) je Checkbox schalten.
+  for (const [id, only] of window.__markerLayers || []) {
+    if (map.getLayer(id)) map.setFilter(id, ["all", only, filt]);
+  }
   for (const s of SOURCES) {
     if (s.layer && map.getLayer(s.layer)) {
       map.setLayoutProperty(s.layer, "visibility", s.el.checked ? "visible" : "none");
     }
+  }
+  // Gruppen-Checkboxen (an / aus / teilweise) + „alle Quellen".
+  for (const g of GROUPS) {
+    const all = g.sources.every((s) => s.el.checked);
+    g.cb.checked = all;
+    g.cb.indeterminate = !all && g.sources.some((s) => s.el.checked);
   }
   const all = SOURCES.every((s) => s.el.checked);
   srcAll.checked = all;
@@ -222,9 +313,15 @@ function applySources() {
   updateZoomHints(); // Hinweiszeilen an den (Un)Check-Zustand anpassen
 }
 
-// Hinweis unter einer Quelle: dauerhaft `hint`; bei Zoom < minZoom zusätzlich der
-// „erst ab Zoom N"-Vorsatz (z.B. UBA-HVS: nur >3 Mio Kfz/Jahr, erst ab Zoom 9).
+// Hinweise: im Gruppen-Kopf „erst ab Zoom N" (Ebene mit minZoom, z.B. Kommunen ab 8),
+// unter einer Quelle dauerhaft `hint` + ggf. „erst ab Zoom N"-Vorsatz (UBA-HVS).
 function updateZoomHints() {
+  const z = map.getZoom();
+  for (const g of GROUPS) {
+    const lvl = LEVELS[g.level];
+    const below = lvl.minZoom && z < lvl.minZoom && g.sources.some((s) => s.el.checked);
+    g.hintEl.textContent = below ? `erst ab Zoom ${lvl.minZoom}` : "";
+  }
   for (const s of SOURCES) {
     if (!s.hintEl) continue;
     if (!s.el.checked) {
@@ -232,91 +329,56 @@ function updateZoomHints() {
       continue;
     }
     s.hintEl.style.display = "";
-    const prefix = s.minZoom && map.getZoom() < s.minZoom ? `erst ab Zoom ${s.minZoom} · ` : "";
+    const prefix = s.minZoom && z < s.minZoom ? `erst ab Zoom ${s.minZoom} · ` : "";
     s.hintEl.querySelector("td").textContent = prefix + (s.hint || "");
   }
 }
 map.on("zoom", updateZoomHints);
 updateZoomHints();
 
-map.on("load", () => {
-  map.addSource("svz", {
-    type: "vector",
-    url: "pmtiles://" + PMTILES_URL,
-    attribution:
-      'Verkehrsmengen: <a href="https://github.com/vizsim/svz#datenquellen-der-16-bundesl%C3%A4nder" target="_blank" rel="noopener">Straßenbauverwaltungen der Länder</a>',
-  });
+// Layer-Definitionen (Linien/Kreise) — gleiche Optik für alle Ebenen; Unterscheidung
+// läuft über das Panel (Ebene/Quelle) und das Popup (Herausgeber).
+const lineLayer = (id, source, sourceLayer, extraLayout = {}) => ({
+  id, type: "line", source, "source-layer": sourceLayer,
+  layout: { "line-cap": "round", "line-join": "round", ...extraLayout },
+  paint: {
+    "line-color": colorExpr,
+    "line-opacity": 0.9,
+    "line-width": ["interpolate", ["linear"], ["zoom"], 6, 1.0, 9, 1.8, 13, 3.5, 16, 7],
+  },
+});
+const circleLayer = (id, source, sourceLayer) => ({
+  id, type: "circle", source, "source-layer": sourceLayer,
+  paint: {
+    "circle-color": colorExpr,
+    "circle-opacity": 0.9,
+    "circle-stroke-color": "#ffffff",
+    "circle-stroke-width": 0.7,
+    "circle-radius": ["interpolate", ["linear"], ["zoom"], 6, 2, 10, 4, 14, 7],
+  },
+});
 
+map.on("load", () => {
   // Beide Daten-Layer direkt unter die erste Symbol-(Label-)Ebene legen.
   const firstSymbol = map.getStyle().layers.find((l) => l.type === "symbol")?.id;
 
-  // Linien-Länder (Zählstellenbereiche/Segmente).
-  map.addLayer(
-    {
-      id: "svz-lines",
-      type: "line",
-      source: "svz",
-      "source-layer": "svz",
-      layout: { "line-cap": "round", "line-join": "round" },
-      paint: {
-        "line-color": colorExpr,
-        "line-opacity": 0.9,
-        "line-width": [
-          "interpolate", ["linear"], ["zoom"],
-          6, 1.0, 9, 1.8, 13, 3.5, 16, 7,
-        ],
-      },
-    },
-    firstSymbol,
-  );
-
-  // Punkt-Länder (Zählstellen-Standorte, z.B. BW/SL) als Kreise.
-  map.addLayer(
-    {
-      id: "svz-points",
-      type: "circle",
-      source: "svz",
-      "source-layer": "svz_points",
-      paint: {
-        "circle-color": colorExpr,
-        "circle-opacity": 0.9,
-        "circle-stroke-color": "#ffffff",
-        "circle-stroke-width": 0.7,
-        "circle-radius": [
-          "interpolate", ["linear"], ["zoom"],
-          6, 2, 10, 4, 14, 7,
-        ],
-      },
-    },
-    firstSymbol,
-  );
-
-  // BASt-Backbone (Bundesfernstraßen A+B) als eigene Quelle/Layer -> separat schaltbar.
-  map.addSource("bast", {
-    type: "vector",
-    url: "pmtiles://" + BAST_PMTILES_URL,
-    attribution:
-      'Bundesfernstraßen: © <a href="https://www.bast.de/DE/Publikationen/Statistik/Verkehrsdaten/Manuelle-Zaehlung.html" target="_blank" rel="noopener">BASt</a>',
-  });
-  map.addLayer(
-    {
-      id: "bast-points",
-      type: "circle",
-      source: "bast",
-      "source-layer": "bast",
-      paint: {
-        "circle-color": colorExpr,
-        "circle-opacity": 0.9,
-        "circle-stroke-color": "#ffffff",
-        "circle-stroke-width": 0.7,
-        "circle-radius": [
-          "interpolate", ["linear"], ["zoom"],
-          6, 2, 10, 4, 14, 7,
-        ],
-      },
-    },
-    firstSymbol,
-  );
+  // Je Ebene eine PMTiles-Quelle (aus dem Manifest: Datei + Attribution). Reihenfolge =
+  // Zeichenreihenfolge: Länder unten, Kommunen darüber (lokal detaillierter), BASt oben.
+  const ATTRIB = {
+    land: 'Verkehrsmengen: <a href="https://github.com/vizsim/svz#datenquellen-der-16-bundesl%C3%A4nder" target="_blank" rel="noopener">Straßenbauverwaltungen der Länder</a>',
+    kommune: 'Kommunale Zählungen: <a href="https://github.com/vizsim/svz#kommunale-verkehrsz%C3%A4hlungen-keine-svz" target="_blank" rel="noopener">Städte (s. Quellen)</a>',
+    bund: 'Bundesfernstraßen: © <a href="https://www.bast.de/DE/Publikationen/Statistik/Verkehrsdaten/Manuelle-Zaehlung.html" target="_blank" rel="noopener">BASt</a>',
+  };
+  for (const level of ["land", "kommune", "bund"]) {
+    const lvl = LEVELS[level];
+    const ds = manifest[lvl.dataset];
+    if (ds && ds.present === false) continue; // Datensatz (noch) nicht gebaut
+    const file = ds?.file || `svz/${lvl.dataset}.pmtiles`;
+    map.addSource(level, { type: "vector", url: "pmtiles://" + DATA_DIR + file, attribution: ATTRIB[level] });
+    for (const [id, type, sourceLayer] of lvl.layers) {
+      map.addLayer(type === "line" ? lineLayer(id, level, sourceLayer) : circleLayer(id, level, sourceLayer), firstSymbol);
+    }
+  }
 
   // UBA-Hauptverkehrsstraßen (bundesweit, END 2021) als Fallback/Backbone — eigene,
   // gehostete Quelle, initial aus. Unter die Länder-Linien gelegt (Länderdaten oben).
@@ -326,24 +388,55 @@ map.on("load", () => {
     attribution:
       'Hauptverkehrsstraßen: © <a href="https://gis.uba.de/maps/resources/apps/laermkartierung/index.html?lang=de" target="_blank" rel="noopener">UBA</a>',
   });
-  map.addLayer(
-    {
-      id: "hvs-lines",
-      type: "line",
-      source: "hvs",
-      "source-layer": "lines",
-      layout: { "line-cap": "round", "line-join": "round", visibility: "none" },
-      paint: {
-        "line-color": hvsColorExpr,
-        "line-opacity": 0.9,
-        "line-width": [
-          "interpolate", ["linear"], ["zoom"],
-          6, 1.0, 9, 1.8, 13, 3.5, 16, 7,
-        ],
-      },
+  const hvs = lineLayer("hvs-lines", "hvs", "lines", { visibility: "none" });
+  hvs.paint["line-color"] = hvsColorExpr;
+  map.addLayer(hvs, map.getLayer("svz-lines") ? "svz-lines" : firstSymbol);
+
+  // Übersichts-Marker „hier gibt es kommunale Daten": unterhalb des Mindestzooms der Ebene
+  // je Quelle ein beschrifteter Punkt (BBox-Mitte aus dem Manifest), Klick zoomt hin. Über
+  // den Labels, damit die Orte auf Deutschland-Zoom auffindbar bleiben.
+  const kommunen = SOURCES.filter((s) => s.bbox && LEVELS[s.level]?.marker);
+  // Schrift aus dem Basemap-Style übernehmen (Glyph-Server des Styles), möglichst nicht kursiv.
+  const fonts = map.getStyle().layers.flatMap((l) =>
+    l.type === "symbol" && Array.isArray(l.layout?.["text-font"]) ? [l.layout["text-font"]] : []);
+  const font = fonts.find((f) => /Bold/.test(f[0])) || fonts.find((f) => /Regular/.test(f[0])) || fonts[0] || ["Noto Sans Regular"];
+  map.addSource("kommune-marker", {
+    type: "geojson",
+    data: {
+      type: "FeatureCollection",
+      features: kommunen.map((s) => ({
+        type: "Feature",
+        properties: { source: s.code, name: s.name, minzoom: LEVELS[s.level].minZoom },
+        geometry: { type: "Point", coordinates: [(s.bbox[0] + s.bbox[2]) / 2, (s.bbox[1] + s.bbox[3]) / 2] },
+      })),
     },
-    "svz-lines",
-  );
+  });
+  // Auffällig gegenüber den Länder-Punkten: größerer weißer Kreis mit blauem Ring, Label
+  // darf Basemap-Labels überdecken (es sind nur wenige Orte). Ein Layer-Paar je Mindestzoom
+  // (falls Ebenen mit anderem minZoom dazukommen), weil Filter nicht auf ["zoom"] zugreifen dürfen.
+  const MARKER_LAYERS = [];
+  for (const mz of [...new Set(kommunen.map((s) => LEVELS[s.level].minZoom))]) {
+    const only = ["==", ["get", "minzoom"], mz];
+    map.addLayer({
+      id: `marker-${mz}`, type: "circle", source: "kommune-marker", maxzoom: mz, filter: only,
+      paint: { "circle-radius": 7, "circle-color": "#ffffff", "circle-stroke-color": "#4576c4", "circle-stroke-width": 2.5 },
+    });
+    map.addLayer({
+      id: `marker-${mz}-label`, type: "symbol", source: "kommune-marker", maxzoom: mz, filter: only,
+      layout: {
+        "text-field": ["get", "name"], "text-font": font, "text-size": 12,
+        "text-offset": [0, 1.0], "text-anchor": "top", "text-allow-overlap": true, "text-ignore-placement": true,
+      },
+      paint: { "text-color": "#4576c4", "text-halo-color": "#ffffff", "text-halo-width": 1.8 },
+    });
+    MARKER_LAYERS.push([`marker-${mz}`, only], [`marker-${mz}-label`, only]);
+  }
+  window.__markerLayers = MARKER_LAYERS; // applySources: Filter = Mindestzoom ∧ Quelle aktiv
+  for (const [id] of MARKER_LAYERS.filter(([id]) => !id.endsWith("-label"))) {
+    map.on("click", id, (e) => zoomTo(SRC[e.features[0].properties.source]));
+    map.on("mouseenter", id, () => (map.getCanvas().style.cursor = "pointer"));
+    map.on("mouseleave", id, () => (map.getCanvas().style.cursor = ""));
+  }
 
   // Initiale Quellen-Sichtbarkeit setzen (Layer existieren jetzt).
   applySources();
@@ -353,17 +446,26 @@ map.on("load", () => {
   const pct = (num, den) =>
     den ? ((Number(num) / Number(den)) * 100).toLocaleString("de-DE", { maximumFractionDigits: 1 }) : null;
 
-  // Straßenklasse-Kürzel -> Klartext; Quelle „DE" = bundesweiter BASt-Backbone.
-  const ROAD_CLASS = { A: "Autobahn", B: "Bundesstraße", L: "Landesstraße", K: "Kreisstraße", G: "Gemeindestraße" };
-  const providerLabel = (state) => (state === "DE" ? "BASt" : state);
+  // Straßenklasse-Kürzel -> Klartext (G = städtisches Netz / Klasse lt. Quelle offen).
+  const ROAD_CLASS = { A: "Autobahn", B: "Bundesstraße", L: "Landesstraße", K: "Kreisstraße", G: "Gemeinde-/Stadtstraße" };
+  // Herausgeber: Kommune „Ravensburg (BW)", Bund „BASt", Länder ihr Kürzel.
+  const providerLabel = (p) => {
+    const s = SRC[p.source];
+    if (s?.level === "kommune") return `${s.name} (${s.state})`;
+    if (s?.level === "bund" || p.state === "DE") return "BASt";
+    return p.state;
+  };
 
-  // Metrik-Badge mit Erklär-Tooltip (hover) – DTV/DTVw/DTV≈ ausgeschrieben.
+  // Metrik-Badge mit Erklär-Tooltip (hover) – DTV/DTVw/DTV≈/24h ausgeschrieben.
   const METRIC_TITLE = {
     DTV: "Durchschnittliche tägliche Verkehrsstärke (Kfz/24h, alle Tage)",
     DTVw: "Durchschnittliche tägliche Verkehrsstärke werktags (Mo–Fr)",
     "DTV≈": "Näherung aus Jahresmenge: Kfz/Jahr ÷ 365",
+    "24h": "Einzelzählung über 24 h an einem Werktag (Di/Do) – kein Jahresmittel wie DTV",
   };
-  const metricBadge = (m) => `<span class="popup-metric" title="${METRIC_TITLE[m] || ""}">${m}</span>`;
+  const METRIC_LABEL = { "24h": "24h-Zählung" };
+  const metricBadge = (m) =>
+    `<span class="popup-metric" title="${METRIC_TITLE[m] || ""}">${METRIC_LABEL[m] || m}</span>`;
 
   // „SV" = Schwerverkehr; Label mit Erklär-Tooltip beim Hovern.
   const svLabel = (t) => `<span class="popup-hint" title="Schwerverkehr: Lkw, Lastzüge, Busse (Kfz > 3,5 t)">${t}</span>`;
@@ -373,7 +475,7 @@ map.on("load", () => {
     `<div class="popup-dtv">${fmt(val)} <span class="popup-unit">Kfz/24h</span> ${metricBadge(metric)}</div>`;
 
   const popup = (lngLat, html) =>
-    new maplibregl.Popup({ closeButton: false, maxWidth: "270px" })
+    new maplibregl.Popup({ closeButton: false, maxWidth: "290px" })
       .setLngLat(lngLat)
       .setHTML(html)
       .addTo(map);
@@ -391,8 +493,10 @@ map.on("load", () => {
       );
       return;
     }
-    const road = p.road_no || `${p.road_class}-Straße`;
+    // Titel: Straßen-/Knotenname (kommunal), sonst Straßennummer, sonst Klasse.
+    const title = p.name || p.road_no || `${p.road_class}-Straße`;
     const klass = ROAD_CLASS[p.road_class] || `Klasse ${p.road_class}`;
+    const klassLine = p.name && p.road_no ? `${klass} ${p.road_no}` : klass;
 
     // Schwerverkehr: absolut (+ berechneter Anteil) ODER nur Anteil %.
     let sv = "";
@@ -410,13 +514,14 @@ map.on("load", () => {
 
     popup(
       e.lngLat,
-      `<div class="popup-road">${road}</div>` +
+      `<div class="popup-road">${title}</div>` +
         dtvLine +
         sv +
-        `<div class="popup-meta">${klass} · ${p.year} · ${providerLabel(p.state)}</div>`,
+        `<div class="popup-meta">${klassLine} · ${p.year} · ${providerLabel(p)}</div>`,
     );
   };
-  for (const id of ["svz-lines", "svz-points", "bast-points", "hvs-lines"]) {
+  for (const id of [...ALL_LAYERS.map(([id]) => id), "hvs-lines"]) {
+    if (!map.getLayer(id)) continue;
     map.on("click", id, onClick);
     map.on("mouseenter", id, () => (map.getCanvas().style.cursor = "pointer"));
     map.on("mouseleave", id, () => (map.getCanvas().style.cursor = ""));
@@ -493,11 +598,7 @@ function updateLegendForZoom() {
 }
 
 // Färbung (Modus + Palette) auf allen Datenebenen anwenden + Legende neu bauen.
-const DATA_LAYERS = [
-  ["svz-lines", "line-color"],
-  ["svz-points", "circle-color"],
-  ["bast-points", "circle-color"],
-];
+const DATA_LAYERS = ALL_LAYERS.map(([id, type]) => [id, type === "line" ? "line-color" : "circle-color"]);
 function applyColors() {
   const expr = colorExprFor(mode, cb);
   for (const [id, prop] of DATA_LAYERS) {

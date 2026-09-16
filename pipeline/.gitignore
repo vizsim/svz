@@ -21,6 +21,7 @@ data/*
 !data/svz/
 !data/svz/svz_de.pmtiles
 !data/svz/svz_bast.pmtiles
+!data/svz/svz_kommunal.pmtiles
 
 # --- Python / uv ---
 __pycache__/

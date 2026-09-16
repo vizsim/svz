@@ -43,6 +43,30 @@ def test_to_canonical_maps_reprojects_and_drops_foreign() -> None:
     assert out["dtv_kfz"].dtype == "Int64"
 
 
+def test_to_canonical_level_from_sources_and_year_from_column() -> None:
+    raw = _raw_utm()
+    raw["jahr"] = ["2019", 2021]                    # gemischte Typen -> Int64 je Zeile
+    out = base.to_canonical(
+        raw, mapping={"DTV": "dtv_kfz"},
+        metric="24h", year_from="jahr", road_class="G",
+        state="BW", source="ravensburg", license="dl-de/by-2.0",
+    )
+    schema.validate(out, where="ravensburg")
+    assert list(out["year"]) == [2019, 2021]
+    assert set(out["level"]) == {"kommune"}         # aus sources.yaml über `source`
+    assert out["name"].isna().all()                 # optionale Spalte wird aufgefüllt
+
+
+def test_validate_rejects_bad_level() -> None:
+    out = base.to_canonical(
+        _raw_utm(), mapping={"DTV": "dtv_kfz"},
+        metric="DTV", year=2021, road_class="B", level="stadt",
+        state="RP", source="rp", license="dl-de/by-2.0",
+    )
+    with pytest.raises(schema.SchemaError):
+        schema.validate(out)
+
+
 def test_validate_rejects_bad_metric() -> None:
     out = base.to_canonical(
         _raw_utm(), mapping={"DTV": "dtv_kfz"},

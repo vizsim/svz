@@ -59,3 +59,32 @@ profiles:
       dtv_kfz: int
       dtv_sv: int
       year: int
+
+  # Kommunen (städtische Zählungen) -> eigenes svz_kommunal.pmtiles, Layer `kommunal`
+  # (Linien) + `kommunal_points` (Punkte). Erst ab Zoom 8: bei Landes-/Bundesmaßstab ist
+  # eine Stadt nur ein Fleck, und die dichten Innenstadtnetze würden die kleinen Zooms
+  # aufblähen. Keine DTV-Leiter nötig (ab Zoom 8 zeigt die ohnehin alles).
+  kommunal_lines:
+    layer: kommunal
+    minzoom: 8
+    maxzoom: 14
+    drop_rate: 0
+    drop_densest_as_needed: true
+    no_feature_limit: true
+    no_tile_size_limit: true
+    attribute_types:
+      dtv_kfz: int
+      dtv_sv: int
+      year: int
+  kommunal_points:
+    layer: kommunal_points
+    minzoom: 8
+    maxzoom: 14
+    drop_rate: 0
+    drop_densest_as_needed: true
+    no_feature_limit: true
+    no_tile_size_limit: true
+    attribute_types:
+      dtv_kfz: int
+      dtv_sv: int
+      year: int

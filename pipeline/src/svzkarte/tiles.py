@@ -95,44 +95,53 @@ def tile_join(output_path: Path, inputs: list[Path], *, dry_run: bool = False) -
     return output_path
 
 
-def build_svz(*, dry_run: bool = False) -> dict[str, Path]:
-    """Zwei PMTiles:
-      - svz_de.pmtiles  = svz_lines.fgb (Layer `svz`) + svz_points.fgb (`svz_points`),
-        per tile-join vereint (Länder).
-      - svz_bast.pmtiles = svz_bast.fgb (Layer `bast`), der bundesweite BASt-Backbone,
-        im Frontend separat schaltbar.
-    Baut nur, was als FGB existiert.
+# Ein PMTiles je Ebene (Frontend-Vertrag: Dateiname + Layer-Namen der Profile).
+# Mehrteilige Datensätze (Linien + Punkte) werden per tile-join vereint.
+DATASETS: dict[str, list[tuple[str, str]]] = {
+    "svz_de": [("svz_lines", "svz_lines.fgb"), ("svz_points", "svz_points.fgb")],
+    "svz_bast": [("bast_points", "svz_bast.fgb")],
+    "svz_kommunal": [
+        ("kommunal_lines", "kommunal_lines.fgb"),
+        ("kommunal_points", "kommunal_points.fgb"),
+    ],
+}
+
+
+def build_svz(*, dry_run: bool = False, only: set[str] | None = None) -> dict[str, Path]:
+    """Ein PMTiles je Ebene (im Frontend separat schaltbar):
+      - svz_de.pmtiles       Länder: svz_lines.fgb (`svz`) + svz_points.fgb (`svz_points`)
+      - svz_bast.pmtiles     Bund:   svz_bast.fgb (`bast`), der BASt-Backbone
+      - svz_kommunal.pmtiles Kommunen: kommunal_lines.fgb (`kommunal`) + kommunal_points.fgb
+    Baut nur, was als FGB existiert; `only` beschränkt auf einzelne Datensätze
+    (z.B. {"svz_kommunal"}, damit nicht jedes Mal die Länder neu gekachelt werden).
     """
     from svzkarte.config import get_paths
 
     paths = get_paths()
     results: dict[str, Path] = {}
 
-    # 1) Länder -> svz_de.pmtiles (Linien + Punkte via tile-join).
-    out_de = paths.svz / "svz_de.pmtiles"
-    parts: list[Path] = []
-    for profile, fgb in (
-        ("svz_lines", paths.svz / "svz_lines.fgb"),
-        ("svz_points", paths.svz / "svz_points.fgb"),
-    ):
-        if not fgb.exists() and not dry_run:
+    for name, spec in DATASETS.items():
+        if only and name not in only:
             continue
-        part = out_de.with_name(f"_{profile}_tmp.pmtiles")
-        tippecanoe(profile, fgb, part, dry_run=dry_run)
-        parts.append(part)
-    if parts:
-        results["svz_de"] = tile_join(out_de, parts, dry_run=dry_run)
+        out = paths.svz / f"{name}.pmtiles"
+        present = [
+            (prof, paths.svz / fgb) for prof, fgb in spec if (paths.svz / fgb).exists() or dry_run
+        ]
+        if not present:
+            continue
+        if len(present) == 1:
+            prof, fgb = present[0]
+            results[name] = tippecanoe(prof, fgb, out, dry_run=dry_run)
+            continue
+        parts = [
+            tippecanoe(prof, fgb, out.with_name(f"_{prof}_tmp.pmtiles"), dry_run=dry_run)
+            for prof, fgb in present
+        ]
+        results[name] = tile_join(out, parts, dry_run=dry_run)
         if not dry_run:
             for part in parts:
                 part.unlink(missing_ok=True)
 
-    # 2) BASt-Backbone -> eigenes svz_bast.pmtiles.
-    bast_fgb = paths.svz / "svz_bast.fgb"
-    if bast_fgb.exists() or dry_run:
-        results["svz_bast"] = tippecanoe(
-            "bast_points", bast_fgb, paths.svz / "svz_bast.pmtiles", dry_run=dry_run
-        )
-
     if not results:
-        raise FileNotFoundError(f"Keine svz_*.fgb in {paths.svz} — erst `svz merge`.")
+        raise FileNotFoundError(f"Keine *.fgb in {paths.svz} — erst `svz merge`.")
     return results

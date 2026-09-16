@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
   <meta charset="utf-8" />
-  <title>Verkehrsmengenkarte – SVZ der Länder</title>
+  <title>Verkehrsmengenkarte – SVZ der Länder + kommunale Zählungen</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.6.0/dist/maplibre-gl.css" />
   <script src="https://unpkg.com/maplibre-gl@5.6.0/dist/maplibre-gl.js" crossorigin="anonymous"></script>
@@ -14,15 +14,14 @@
 
   <div id="title">
     <h1>Verkehrsmengen</h1>
-    <p>SVZ der Bundesländer · <span id="state-line">11 Länder + BASt · DTV / DTV<sub>w</sub></span></p>
+    <p><span id="state-line">SVZ der Bundesländer + BASt · dazu kommunale Zählungen</span> · DTV / DTV<sub>w</sub></p>
     <div id="sources">
       <button id="sources-toggle" type="button" aria-expanded="true">Quellen ▾</button>
       <div id="sources-body">
         <label class="src-all"><input type="checkbox" id="src-all" checked /> alle Quellen</label>
+        <!-- Gruppen (Länder / Kommunen / Bund) baut main.js aus pipeline/data/manifest.json. -->
         <table id="sources-table">
-          <thead><tr><th></th><th>Land</th><th>Jahr</th><th>Lizenz</th><th>Zugang</th></tr></thead>
-          <tbody id="sources-list"></tbody>
-          <tbody id="sources-bast-body" class="bast-body"></tbody>
+          <thead><tr><th></th><th>Quelle</th><th>Jahr</th><th>Lizenz</th><th>Zugang</th></tr></thead>
         </table>
         <div class="src-details">
           <a href="https://github.com/vizsim/svz#datenquellen-der-16-bundesl%C3%A4nder" target="_blank" rel="noopener">Details → README-Tabelle</a>
