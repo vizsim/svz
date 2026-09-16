@@ -73,6 +73,10 @@ als **PDF** (HB, HE, SH-L/K) – dann braucht es eine Werte-Tabelle mit Netzknot
 Zählstellennummer zum Join (wie ST/TH). Autobahnen decken bundesweit der **BASt-Backbone**
 ab (die Länder liefern A seit der Autobahn GmbH teils nicht mehr).
 
+**Fehlt eine Zählung?** Du kennst eine offizielle Quelle (Bundesland oder Stadt/Gemeinde),
+die hier noch nicht drin ist? **[Kurz melden](https://github.com/vizsim/svz/issues/new?template=fehlende-zaehlung.yml)** –
+Ort und Link genügen, den Rest übernehmen wir.
+
 ## Aufbau
 
 ```text
@@ -82,9 +86,10 @@ svz/
 │  ├─ src/svzkarte/adapters/<code>.py  # ein Adapter je Land, normalize() -> GeoDataFrame
 │  ├─ config/sources.yaml              # je Land: status/kind/url/year/license/metric
 │  └─ config/tiles.yaml                # tippecanoe-Profile (svz_lines / svz_points)
-└─ docs/
-   ├─ TODO.md                          # Datenlücken, BASt-Backbone, offene Punkte
-   └─ cdp_shot.py                      # Headless-Screenshot-Tooling (CDP)
+├─ docs/
+│  ├─ TODO.md                          # Datenlücken, BASt-Backbone, offene Punkte
+│  └─ cdp_shot.py                      # Headless-Screenshot-Tooling (CDP)
+└─ .github/ISSUE_TEMPLATE/             # Issue-Formular: fehlende Zählung melden (Ort + Link)
 ```
 
 ## Lizenz
