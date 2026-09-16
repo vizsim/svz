@@ -2,19 +2,26 @@
 html, body, #map { height: 100%; width: 100%; }
 body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
 
+/* Panel: darf hoch werden, aber NIE die Legende überlappen. main.js setzt max-height =
+   Abstand Panel-Oberkante -> Legenden-Oberkante; die Quellenliste scrollt intern
+   (Flex-Spalte mit min-height:0). calc() ist nur der Fallback ohne JS. */
 #title {
   position: absolute; top: 12px; left: 12px; z-index: 2;
   background: rgba(255,255,255,0.97); padding: 10px 14px; border-radius: 8px;
   box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+  display: flex; flex-direction: column; max-height: calc(100vh - 300px);
 }
 #title h1 { font-size: 18px; font-weight: 700; color: #1a1a1a; }
 #title p { font-size: 12px; color: #555; margin-top: 2px; }
-#sources { margin-top: 8px; border-top: 1px solid #e5e5e5; padding-top: 6px; }
+#sources {
+  margin-top: 8px; border-top: 1px solid #e5e5e5; padding-top: 6px;
+  display: flex; flex-direction: column; min-height: 0;
+}
 #sources-toggle {
   background: none; border: none; padding: 0; cursor: pointer;
-  font: inherit; font-size: 12px; font-weight: 600; color: #333;
+  font: inherit; font-size: 12px; font-weight: 600; color: #333; align-self: flex-start;
 }
-#sources-body { margin-top: 6px; max-height: 55vh; overflow-y: auto; overflow-x: hidden; }
+#sources-body { margin-top: 6px; flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden; }
 .src-all {
   display: flex; align-items: center; gap: 6px; font-size: 12px;
   font-weight: 600; color: #222; margin-bottom: 6px;
@@ -41,11 +48,29 @@ body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
 .src-access a:hover { text-decoration: underline; }
 .src-access .sep { color: #c4c4c4; }
 
-/* BASt-Backbone unten abgesetzt (kein Bundesland). */
-tbody.bast-body td { border-top: 1px solid #d5d5d5; padding-top: 5px; }
-tbody.bast-body .src-name { font-style: italic; color: #444; }
-/* die src-hint-Zeile darunter hat keine eigene Trennlinie */
-tbody.bast-body tr.src-hint td { border-top: none; padding-top: 0; }
+/* Gruppen je Ebene (Länder / Kommunen / Bund): Kopfzeile mit Gruppen-Checkbox,
+   Klapp-Pfeil, Anzahl und Zoom-Hinweis; Zeilen darunter ein-/ausklappbar. */
+tr.src-group-head td {
+  padding: 7px 0 3px; border-top: 1px solid #e5e5e5;
+  font-weight: 600; color: #333; white-space: nowrap;
+}
+tbody.src-group:first-of-type tr.src-group-head td { border-top: none; padding-top: 2px; }
+tr.src-group-head input { cursor: pointer; vertical-align: middle; }
+.src-group-toggle {
+  background: none; border: none; padding: 0 5px 0 0; cursor: pointer;
+  font: inherit; font-size: 11px; color: #888;
+}
+.src-count { color: #aaa; font-weight: 400; margin-left: 3px; }
+.src-group-hint { font-weight: 400; font-style: italic; font-size: 10px; color: #a8a8a8; margin-left: 8px; }
+tbody.src-group.collapsed tr:not(.src-group-head) { display: none; }
+/* Bundesland-Kürzel hinter Kommunen + ⌖-Button „hinzoomen" (BBox aus dem Manifest). */
+.src-state { font-size: 10px; color: #999; margin-left: 4px; }
+.src-zoom {
+  background: none; border: none; cursor: pointer; padding: 0 0 0 5px;
+  line-height: 1; color: #bcbcbc; vertical-align: middle; display: inline-flex;
+}
+.src-zoom svg { display: block; }
+.src-zoom:hover { color: #4576c4; }
 
 /* kleiner Hinweis unter einer Quelle (z.B. UBA-HVS: >3 Mio Kfz/Jahr, ab Zoom 9) */
 tr.src-hint td { padding: 0 0 4px 24px; font-size: 10px; color: #a8a8a8; font-style: italic; }
@@ -120,7 +145,7 @@ tr.src-hint td { padding: 0 0 4px 24px; font-size: 10px; color: #a8a8a8; font-st
   #title h1 { font-size: 16px; }
   #title p { font-size: 11px; }
   /* zusätzliche „Zugang"-Spalte kann schmale Screens sprengen -> horizontal scrollbar */
-  #sources-body { max-height: 42vh; overflow-x: auto; }
+  #sources-body { overflow-x: auto; }
   .src-row td { padding-right: 6px; }
 
   #legend { bottom: 8px; left: 8px; padding: 8px 10px; min-width: 0; }

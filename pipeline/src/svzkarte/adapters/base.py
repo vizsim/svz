@@ -132,12 +132,13 @@ def fetch_atom(feed_url: str, *, match: str | None = None) -> GeoDataFrame:
     return gpd.read_file(io.BytesIO(data))
 
 
-def fetch_zip(url: str) -> GeoDataFrame:
+def fetch_zip(url: str, *, layer: str | None = None) -> GeoDataFrame:
     """Lädt ein gezipptes Vektordataset direkt (z.B. NI-Downloadservice-ZIP) und
     liest es als GeoDataFrame — inklusive Shapefile-Sidecars (.dbf/.shx/.prj).
+    `layer` wählt bei ZIPs mit mehreren Shapefiles das gewünschte (z.B. Köln link/node).
     """
     data = requests.get(url, headers=_UA, timeout=_TIMEOUT).content
-    return _read_zip_vector(data)
+    return _read_zip_vector(data, layer=layer)
 
 
 def fetch_geojson(url: str) -> GeoDataFrame:
@@ -148,7 +149,7 @@ def fetch_geojson(url: str) -> GeoDataFrame:
     return gpd.read_file(io.BytesIO(data))
 
 
-def _read_zip_vector(data: bytes) -> GeoDataFrame:
+def _read_zip_vector(data: bytes, *, layer: str | None = None) -> GeoDataFrame:
     import os
     import tempfile
 
@@ -161,7 +162,7 @@ def _read_zip_vector(data: bytes) -> GeoDataFrame:
     tmp = Path(name)
     try:
         tmp.write_bytes(data)
-        return gpd.read_file(tmp)
+        return gpd.read_file(tmp, layer=layer) if layer else gpd.read_file(tmp)
     finally:
         tmp.unlink(missing_ok=True)
 
@@ -228,16 +229,29 @@ def join_stations(
     return gpd.GeoDataFrame(merged, geometry="geometry", crs=stations.crs)
 
 
+def source_level(source: str) -> str:
+    """Herausgeber-Ebene (bund/land/kommune) einer Quelle aus sources.yaml (`level`)."""
+    from svzkarte.config import load_yaml
+
+    cfg = load_yaml("sources.yaml")["sources"].get(source) or {}
+    level = cfg.get("level")
+    if level not in schema.LEVELS:
+        raise ValueError(f"sources.yaml: `level` fehlt/ungültig für Quelle {source!r}: {level!r}")
+    return str(level)
+
+
 # --- Mapping auf das kanonische Schema ---
 def to_canonical(
     gdf: GeoDataFrame,
     mapping: dict[str, str],
     *,
     metric: str,
-    year: int,
     state: str,
     source: str,
     license: str,
+    year: int | None = None,
+    year_from: str | None = None,
+    level: str | None = None,
     road_class: str | None = None,
     road_class_from: str | None = None,
     road_class_map: dict[Any, str] | Callable[[Any], str] | None = None,
@@ -246,8 +260,11 @@ def to_canonical(
     nach EPSG:4326. Ergebnis erfüllt `schema.COLUMNS` (vor write_fgb/merge validierbar).
 
     `mapping` = {Quellspalte: kanonische Spalte} (nur die kanonischen Wertspalten:
-    dtv_kfz/dtv_sv/sv_anteil/road_no/station_id). `road_class` setzt eine Konstante,
+    dtv_kfz/dtv_sv/sv_anteil/road_no/name/station_id). `road_class` setzt eine Konstante,
     `road_class_from`+optional `road_class_map` leitet sie je Zeile aus einer Spalte ab.
+    `year` setzt ein konstantes Bezugsjahr, `year_from` nimmt es je Zeile aus einer Spalte
+    (kommunale Quellen mischen Zähljahre). `level` (bund/land/kommune) kommt, wenn nicht
+    angegeben, aus sources.yaml über `source`.
     """
     import geopandas as gpd
     import pandas as pd
@@ -258,9 +275,16 @@ def to_canonical(
         out = out.to_crs(epsg=schema.EPSG)
 
     out["metric"] = metric
-    out["year"] = int(year)
+    if year_from is not None:
+        col = out[year_from] if year_from in out.columns else gdf[year_from]
+        out["year"] = pd.to_numeric(col, errors="coerce").astype("Int64")
+    elif year is not None:
+        out["year"] = int(year)
+    else:
+        raise ValueError("year oder year_from angeben")
     out["state"] = state
     out["source"] = source
+    out["level"] = level or source_level(source)
     out["license"] = license
 
     if road_class is not None:
@@ -276,7 +300,7 @@ def to_canonical(
     else:
         raise ValueError("road_class oder road_class_from angeben")
 
-    for opt in ("dtv_kfz", "dtv_sv", "sv_anteil", "road_no", "station_id"):
+    for opt in ("dtv_kfz", "dtv_sv", "sv_anteil", "road_no", "name", "station_id"):
         if opt not in out.columns:
             out[opt] = None
 

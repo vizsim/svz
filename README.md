@@ -1,17 +1,23 @@
 ![License: AGPL-3.0-or-later](https://img.shields.io/badge/License-AGPL--3.0--or--later-blue)
 
-# Verkehrsmengenkarte – SVZ der Bundesländer
+# Verkehrsmengenkarte – SVZ der Bundesländer (+ kommunale Zählungen)
 
 Sammelt die **Straßenverkehrszählungs-/Verkehrsmengendaten (DTV)** der deutschen
 Bundesländer aus ihren heterogenen Quellen (WFS / OGC API / ATOM-ZIP / GeoJSON /
 Excel), bringt sie in **ein kanonisches Schema**, mergt sie und tilet sie zu **einer
 `svz_de.pmtiles`**, die ein **MapLibre-Viewer** ([index.html](index.html)) auf
-OpenFreeMap-Positron rendert. Pipeline + CLI: siehe [pipeline/README.md](pipeline/README.md).
+OpenFreeMap-Positron rendert; den Autobahn-/Bundesstraßen-Backbone liefert die BASt.
+**Ergänzend – und begrifflich getrennt –** nimmt die Karte **kommunale Verkehrszählungen**
+einzelner Städte auf: das sind **keine SVZ-Daten**, sondern eigene Erhebungen der
+Kommunen (s. [Kommunale Verkehrszählungen](#kommunale-verkehrszählungen-keine-svz)).
+Pipeline + CLI: siehe [pipeline/README.md](pipeline/README.md).
 
-**Stand: 11 Länder + BASt-Backbone (A+B) · 66.330 Segmente/Zählstellen** (Linien + Punkte;
-Länder in `svz_de.pmtiles`, BASt separat schaltbar in `svz_bast.pmtiles`). Kanonische
-Felder je Feature: `dtv_kfz`, `dtv_sv`, `sv_anteil`, `metric` (DTV/DTVw), `year`,
-`road_class` (A/B/L/K/G), `road_no`, `station_id`, `state`, `source`, `license`.
+**Stand: SVZ 11 Länder + BASt-Backbone (A+B) · 66.330 Segmente/Zählstellen** (Linien +
+Punkte; Länder in `svz_de.pmtiles`, BASt separat schaltbar in `svz_bast.pmtiles`) **·
+dazu kommunale Zählungen aus 2 Städten (Köln, Ravensburg) · 2.647 Kanten/Zählstellen**
+in `svz_kommunal.pmtiles`. Kanonische Felder je Feature: `dtv_kfz`, `dtv_sv`, `sv_anteil`,
+`metric` (DTV/DTVw/24h), `year`, `road_class` (A/B/L/K/G), `road_no`, `name`,
+`station_id`, `state`, `source`, `level` (bund/land/kommune), `license`.
 
 ## Hintergrund: SVZ, Zuständigkeiten, BASt
 
@@ -73,6 +79,31 @@ als **PDF** (HB, HE, SH-L/K) – dann braucht es eine Werte-Tabelle mit Netzknot
 Zählstellennummer zum Join (wie ST/TH). Autobahnen decken bundesweit der **BASt-Backbone**
 ab (die Länder liefern A seit der Autobahn GmbH teils nicht mehr).
 
+## Kommunale Verkehrszählungen (keine SVZ)
+
+Ergänzend zur SVZ nimmt die Karte **eigene Zählungen einzelner Städte** auf – das sind
+**keine SVZ-Daten**: die Kommunen erheben selbst, mit eigener Methodik und ohne den
+bundesweiten Turnus. Sie werden deshalb als **eigene Ebene** geführt und im Viewer
+begrifflich abgesetzt („Kommunen – eigene Zählungen"; Konzept:
+[docs/Konzept_kommunale_daten.md](docs/Konzept_kommunale_daten.md),
+[Issue #1](https://github.com/vizsim/svz/issues/1)). Methodische Unterschiede: oft
+**24h-Einzelzählungen an einem Werktag** statt Jahresmittel (Metrik **`24h`**, im Popup
+„24h-Zählung"), **Zähljahr je Zählstelle**, keine Straßenklasse (→ `G` =
+Gemeinde-/Stadtstraße), dafür Straßen-/Knotenname (`name`). Sie liegen in einem eigenen
+`svz_kommunal.pmtiles` (Layer `kommunal` + `kommunal_points`, **erst ab Zoom 8**); auf
+Deutschland-Zoom markiert ein beschrifteter Punkt je Stadt, dass es dort Daten gibt
+(Klick zoomt hin). Adapter unter
+[pipeline/src/svzkarte/adapters/kommunal/](pipeline/src/svzkarte/adapters/kommunal/).
+
+| Stadt | Land | Status | Zugang (URL) | Geom | Jahr | Metrik | SV | Lizenz | Features | Anmerkung |
+|---|---|---|---|---|---|---|---|---|--:|---|
+| **Köln** | NW | ✅ | [ZIP](https://www.offenedaten-koeln.de/sites/default/files/distribution/KFZ%2520Zaehldaten%25202016-2019_0.zip) · [Portal](https://www.offenedaten-koeln.de/dataset/kfz-zaehlstellen-und-werte-koeln) | Linien | 2016–2019 | **DTVw** | – | dl-de/zero-2.0 | 2.551 | VISUM-Netzexport (Shapefile, GK2), Werte **je Richtung und Jahr**; je Kante jüngstes Jahr mit beiden Richtungen (Summe), sonst eine Richtung. Nur Kanten mit Werten. |
+| **Ravensburg** | BW | ✅ | [Excel](https://mobidata-bw.de/daten/portal/RV_Zaehl/Verkehrszaehlungen_RV.xlsx) · [Portal](https://mobidata-bw.de/dataset/zaehldaten-ravensburg) | Punkte | 2023–2026 | **24h** | abs | dl-de/by-2.0 | 96 | Knotenpunkt-Zählungen (Di/Do, 24 h), je Zählstelle die **jüngste** Zählung; SV lt. Quelle auffällig hoch (Median ~18 %). Rad/Fuß im Excel enthalten, noch nicht im Schema. |
+
+Weitere Kandidaten (Düsseldorf, Münster, Dresden, Freiburg, Karlsruhe, MobiData-BW-Städte)
+stehen ungeprüft im Konzept. Neue Stadt = Eintrag in `sources.yaml` + Adapter-Datei +
+Golden-Test; das Frontend-Panel baut sich aus `data/manifest.json`.
+
 **Fehlt eine Zählung?** Du kennst eine offizielle Quelle (Bundesland oder Stadt/Gemeinde),
 die hier noch nicht drin ist? **[Kurz melden](https://github.com/vizsim/svz/issues/new?template=fehlende-zaehlung.yml)** –
 Ort und Link genügen, den Rest übernehmen wir.
@@ -81,12 +112,15 @@ Ort und Link genügen, den Rest übernehmen wir.
 
 ```text
 svz/
-├─ index.html · main.js · style.css   # MapLibre-Viewer (OpenFreeMap Positron)
-├─ pipeline/                           # uv-Paket "svzkarte": Adapter -> merge -> tiles
-│  ├─ src/svzkarte/adapters/<code>.py  # ein Adapter je Land, normalize() -> GeoDataFrame
-│  ├─ config/sources.yaml              # je Land: status/kind/url/year/license/metric
-│  └─ config/tiles.yaml                # tippecanoe-Profile (svz_lines / svz_points)
+├─ index.html · main.js · style.css   # MapLibre-Viewer (OpenFreeMap Positron); Quellen-Panel aus manifest.json
+├─ pipeline/                           # uv-Paket "svzkarte": Adapter -> merge (je Ebene) -> tiles
+│  ├─ src/svzkarte/adapters/<code>.py  # ein Adapter je Land/Bund (SVZ), normalize() -> GeoDataFrame
+│  ├─ src/svzkarte/adapters/kommunal/  # ein Adapter je Stadt (kommunale Zählungen: ravensburg.py, koeln.py)
+│  ├─ config/sources.yaml              # DIE Quellenliste: level/name/state/status/kind/url/year/license/access
+│  ├─ config/tiles.yaml                # tippecanoe-Profile (svz_lines/svz_points/bast_points/kommunal_*)
+│  └─ data/manifest.json               # generiert (`svz manifest`): Datensätze + Quellen (bbox) fürs Frontend
 ├─ docs/
+│  ├─ Konzept_kommunale_daten.md       # Konzept dritte Ebene „Kommunen" (Issue #1)
 │  ├─ TODO.md                          # Datenlücken, BASt-Backbone, offene Punkte
 │  └─ cdp_shot.py                      # Headless-Screenshot-Tooling (CDP)
 └─ .github/ISSUE_TEMPLATE/             # Issue-Formular: fehlende Zählung melden (Ort + Link)
@@ -97,11 +131,11 @@ svz/
 **Code: [AGPL-3.0-or-later](LICENSE)** © vizsim. Der Quellcode-Link im UI (Panel-Footer)
 erfüllt die AGPL-§13-Pflicht (Network Use).
 
-**Daten** behalten ihre **jeweilige Quell-Lizenz** (Spalte „Lizenz" in der Tabelle oben:
+**Daten** behalten ihre **jeweilige Quell-Lizenz** (Spalte „Lizenz" in den Tabellen oben:
 dl-de/by-2.0 · CC-BY-4.0 · dl-de/zero-2.0 · © BASt · © UBA) und **erfordern
-Namensnennung** – die `svz_de.pmtiles`/`svz_bast.pmtiles` sind nur eine umgepackte
-Ableitung, keine eigene Lizenzierung der Inhalte. Attribution der Länder trägt jedes
-Feature im Feld `license`/`source`.
+Namensnennung** – `svz_de.pmtiles`/`svz_bast.pmtiles`/`svz_kommunal.pmtiles` sind nur
+eine umgepackte Ableitung, keine eigene Lizenzierung der Inhalte. Attribution des
+Herausgebers trägt jedes Feature im Feld `license`/`source`/`level`.
 
 **Basiskarte:** [OpenFreeMap](https://openfreemap.org/) · OpenMapTiles ·
 [OpenStreetMap](https://www.openstreetmap.org/copyright)-Daten (ODbL).

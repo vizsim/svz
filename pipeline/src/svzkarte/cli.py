@@ -25,20 +25,21 @@ def info() -> None:
     typer.echo(f"svzkarte {__version__}")
     typer.echo(f"root:     {paths.root}")
     typer.echo(f"data:     {paths.data}")
-    typer.echo(f"implementiert: {', '.join(registry.REGISTRY) or '—'}")
-    typer.echo(f"geplant:       {', '.join(registry.PLANNED) or '—'}")
+    for level in ("bund", "land", "kommune"):
+        typer.echo(f"live/{level:<8} {', '.join(registry.by_level(level)) or '—'}")
+    typer.echo(f"offen:         {', '.join(registry.PLANNED) or '—'}")
     try:
         n = len(load_yaml("sources.yaml").get("sources", {}))
-        typer.echo(f"sources.yaml:  {n} Land-Einträge")
+        typer.echo(f"sources.yaml:  {n} Quellen-Einträge")
     except FileNotFoundError:
         typer.secho("sources.yaml fehlt", fg=typer.colors.RED)
 
 
 @app.command()
 def build(
-    land: str = typer.Argument(..., help="Land-Code (z.B. rp) oder 'all'"),
+    land: str = typer.Argument(..., help="Quellen-Code (z.B. by, bast, ravensburg) oder 'all'"),
 ) -> None:
-    """fetch+normalize -> data/interim/<land>.fgb (validiert)."""
+    """fetch+normalize -> data/interim/<quelle>.fgb (validiert)."""
     from svzkarte import build as build_mod
 
     if land == "all":
@@ -55,7 +56,7 @@ def build(
 
 @app.command()
 def merge() -> None:
-    """interim/<land>.fgb -> data/svz/svz_lines.fgb + svz_points.fgb (nach Geometrie, validiert)."""
+    """interim/*.fgb -> data/svz/ je Ebene × Geometrie (Länder/BASt/Kommunen, validiert)."""
     from svzkarte import merge as merge_mod
 
     written = merge_mod.merge()
@@ -66,11 +67,15 @@ def merge() -> None:
 @app.command()
 def tiles(
     dry_run: bool = typer.Option(False, "--dry-run", help="Kommandos nur zeigen"),
+    only: str = typer.Option(
+        "", "--only", help="nur diese Datensätze (Komma): svz_de, svz_bast, svz_kommunal"
+    ),
 ) -> None:
-    """svz_de.pmtiles (Länder: `svz` + `svz_points`) + svz_bast.pmtiles (Backbone: `bast`)."""
+    """svz_de.pmtiles (Länder) + svz_bast.pmtiles (Bund) + svz_kommunal.pmtiles (Kommunen)."""
     from svzkarte import tiles as tiles_mod
 
-    for name, path in tiles_mod.build_svz(dry_run=dry_run).items():
+    wanted = {s.strip() for s in only.split(",") if s.strip()} or None
+    for name, path in tiles_mod.build_svz(dry_run=dry_run, only=wanted).items():
         typer.secho(f"PMTiles {name}: {path}", fg=typer.colors.GREEN)
 
 

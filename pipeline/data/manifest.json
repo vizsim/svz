@@ -1,87 +1,418 @@
 {
   "svz_de": {
     "label": "Verkehrsmengen (SVZ der Länder)",
-    "attribution": "Straßenbauverwaltungen der Länder + BASt (dl-de/by-2.0, CC-BY 4.0, dl-de/zero-2.0)",
+    "attribution": "Straßenbauverwaltungen der Länder (dl-de/by-2.0, CC-BY 4.0, dl-de/zero-2.0)",
     "file": "svz/svz_de.pmtiles",
     "present": true,
     "vintage": "2024",
-    "built": "2026-07-01"
+    "built": "2026-09-16"
+  },
+  "svz_bast": {
+    "label": "BASt-Backbone (Bundesfernstraßen A+B)",
+    "attribution": "© BASt (bundesweite SVZ der Bundesfernstraßen)",
+    "file": "svz/svz_bast.pmtiles",
+    "present": true,
+    "vintage": "2021",
+    "built": "2026-09-16"
+  },
+  "svz_kommunal": {
+    "label": "Kommunale Verkehrszählungen",
+    "attribution": "Städte (dl-de/by-2.0, dl-de/zero-2.0)",
+    "file": "svz/svz_kommunal.pmtiles",
+    "present": true,
+    "vintage": "2026",
+    "built": "2026-09-16"
   },
   "_sources": {
-    "be": {
-      "year": 2023,
-      "license": "dl-de/zero-2.0",
-      "metric": "DTVw"
-    },
-    "ni": {
-      "year": 2021,
-      "license": "CC-BY-4.0",
-      "metric": "DTV"
-    },
     "by": {
+      "name": "Bayern",
+      "level": "land",
+      "state": "BY",
+      "status": "live",
+      "kind": "wfs",
       "year": 2021,
+      "metric": "DTV",
       "license": "CC-BY-4.0",
-      "metric": "DTV"
+      "access": [
+        {
+          "label": "WFS",
+          "url": "https://gisportal-stmb.bayern.de/server/services/WFS/BAYSIS_Verkehrsdaten/MapServer/WFSServer"
+        }
+      ],
+      "n": 9431,
+      "bbox": [
+        8.9801,
+        47.3872,
+        13.8187,
+        50.5487
+      ]
+    },
+    "be": {
+      "name": "Berlin",
+      "level": "land",
+      "state": "BE",
+      "status": "live",
+      "kind": "wfs",
+      "year": 2023,
+      "metric": "DTVw",
+      "license": "dl-de/zero-2.0",
+      "access": [
+        {
+          "label": "WFS",
+          "url": "https://gdi.berlin.de/services/wfs/verkehrsmengen_2023"
+        }
+      ],
+      "n": 8337,
+      "bbox": [
+        13.0902,
+        52.3705,
+        13.7569,
+        52.6599
+      ]
     },
     "bb": {
+      "name": "Brandenburg",
+      "level": "land",
+      "state": "BB",
+      "status": "live",
+      "kind": "wfs",
       "year": 2021,
+      "metric": "DTV",
       "license": "dl-de/by-2.0",
-      "metric": "DTV"
+      "access": [
+        {
+          "label": "WFS",
+          "url": "https://inspire.brandenburg.de/services/zaehlstellen_wfs"
+        }
+      ],
+      "n": 2315,
+      "bbox": [
+        11.273,
+        51.3621,
+        14.7528,
+        53.5591
+      ]
     },
     "hh": {
+      "name": "Hamburg",
+      "level": "land",
+      "state": "HH",
+      "status": "live",
+      "kind": "wfs",
       "year": 2019,
+      "metric": "DTV",
       "license": "dl-de/by-2.0",
-      "metric": "DTV"
+      "access": [
+        {
+          "label": "WFS",
+          "url": "https://geodienste.hamburg.de/HH_WFS_Verkehrsmengen"
+        }
+      ],
+      "n": 4303,
+      "bbox": [
+        9.7377,
+        53.414,
+        10.2715,
+        53.72
+      ]
+    },
+    "ni": {
+      "name": "Niedersachsen",
+      "level": "land",
+      "state": "NI",
+      "status": "live",
+      "kind": "zip",
+      "year": 2021,
+      "metric": "DTV",
+      "license": "CC-BY-4.0",
+      "access": [
+        {
+          "label": "ZIP",
+          "url": "https://map.strassenbau.niedersachsen.de/zip/DE-NI-SBV_Downloadservice_SVZ_Zaehlstellenbereiche_2021.zip"
+        }
+      ],
+      "n": 2819,
+      "bbox": [
+        6.6836,
+        51.3053,
+        11.5673,
+        53.8647
+      ]
     },
     "nw": {
+      "name": "Nordrhein-Westfalen",
+      "level": "land",
+      "state": "NW",
+      "status": "live",
+      "kind": "zip",
       "year": 2019,
+      "metric": "DTV",
       "license": "dl-de/by-2.0",
-      "metric": "DTV"
-    },
-    "bw": {
-      "year": 2024,
-      "license": "dl-de/by-2.0",
-      "metric": "DTV"
-    },
-    "sl": {
-      "year": 2021,
-      "license": "CC-BY-4.0",
-      "metric": "DTV"
-    },
-    "bast": {
-      "year": 2021,
-      "license": "© BASt",
-      "metric": "DTV"
-    },
-    "th": {
-      "year": 2015,
-      "license": "dl-de/by-2.0",
-      "metric": "DTV"
-    },
-    "sh": {
-      "year": 2021,
-      "license": "CC-BY-4.0",
-      "metric": "DTV"
-    },
-    "st": {
-      "year": 2021,
-      "license": "dl-de/by-2.0",
-      "metric": "DTV"
-    },
-    "mv": {
-      "year": 2015,
-      "license": "dl-de/by-2.0",
-      "metric": "DTV"
+      "access": [
+        {
+          "label": "ZIP",
+          "url": "https://www.opengeodata.nrw.de/produkte/transport_verkehr/strassennetz/Verkehrswerte2019HR_EPSG25832_Shape.zip"
+        }
+      ],
+      "n": 13858,
+      "bbox": [
+        5.8668,
+        50.3358,
+        9.4548,
+        52.5203
+      ]
     },
     "sn": {
+      "name": "Sachsen",
+      "level": "land",
+      "state": "SN",
+      "status": "live",
+      "kind": "zip",
       "year": 2021,
+      "metric": "DTV",
       "license": "dl-de/by-2.0",
-      "metric": "DTV"
+      "access": [
+        {
+          "label": "ZIP",
+          "url": "https://www.list.smwa.sachsen.de/gdi/download/DE-SN-SBV-SVZ2021.zip"
+        }
+      ],
+      "n": 3510,
+      "bbox": [
+        11.8772,
+        50.1728,
+        15.0295,
+        51.6761
+      ]
+    },
+    "st": {
+      "name": "Sachsen-Anhalt",
+      "level": "land",
+      "state": "ST",
+      "status": "live",
+      "kind": "wfs+xlsx",
+      "year": 2021,
+      "metric": "DTV",
+      "license": "dl-de/by-2.0",
+      "access": [
+        {
+          "label": "WFS",
+          "url": "https://www.geodatenportal.sachsen-anhalt.de/gfds/ws/wfs/a78d7bc1-ffbb-cf76/GDI-LSA_LSBB_STRASSENNETZE/ows.wfs"
+        },
+        {
+          "label": "Excel",
+          "url": "https://lsbb.sachsen-anhalt.de/fileadmin/Bibliothek/Politik_und_Verwaltung/Landesbetriebe/LSBB/Service/Strassenverkehrszaehlungen/Dateien_2025/Ergebnisse_SVZ_2021.xlsx"
+        }
+      ],
+      "n": 1145,
+      "bbox": [
+        10.5746,
+        50.9588,
+        13.1466,
+        52.9986
+      ]
+    },
+    "th": {
+      "name": "Thüringen",
+      "level": "land",
+      "state": "TH",
+      "status": "live",
+      "kind": "wfs",
+      "year": 2015,
+      "metric": "DTV",
+      "license": "dl-de/by-2.0",
+      "access": [
+        {
+          "label": "WFS",
+          "url": "https://www.geoproxy.geoportal-th.de/geoproxy/services/STRNETZ_SVZ_wfs"
+        }
+      ],
+      "n": 2276,
+      "bbox": [
+        9.9233,
+        50.2214,
+        12.6296,
+        51.6404
+      ]
+    },
+    "bw": {
+      "name": "Baden-Württemberg",
+      "level": "land",
+      "state": "BW",
+      "status": "live",
+      "kind": "geojson",
+      "year": 2024,
+      "metric": "DTV",
+      "license": "dl-de/by-2.0",
+      "access": [
+        {
+          "label": "GeoJSON",
+          "url": "https://mobidata-bw.de/karten_geojsons/maps/count_car/SVZ-Zaehlstellen_231011_augmented_SVZ2024.geojson"
+        }
+      ],
+      "n": 5629,
+      "bbox": [
+        7.5238,
+        47.5453,
+        10.4465,
+        49.7834
+      ]
+    },
+    "sl": {
+      "name": "Saarland",
+      "level": "land",
+      "state": "SL",
+      "status": "live",
+      "kind": "wfs",
+      "year": 2021,
+      "metric": "DTV",
+      "license": "CC-BY-4.0",
+      "access": [
+        {
+          "label": "WFS",
+          "url": "https://geoportal.saarland.de/arcgis/services/Internet/Verkehr_WFS/MapServer/WFSServer"
+        }
+      ],
+      "n": 757,
+      "bbox": [
+        6.3693,
+        49.1166,
+        7.3991,
+        49.6203
+      ]
+    },
+    "bast": {
+      "name": "BASt-Backbone (A+B)",
+      "level": "bund",
+      "state": "DE",
+      "status": "live",
+      "kind": "xlsx",
+      "year": 2021,
+      "metric": "DTV",
+      "license": "© BASt",
+      "access": [
+        {
+          "label": "Excel A",
+          "url": "https://www.bast.de/DE/Publikationen/Statistik/Verkehrsdaten/2021/Autobahnen-2021.xlsx?__blob=publicationFile&v=1"
+        },
+        {
+          "label": "Excel B",
+          "url": "https://www.bast.de/DE/Publikationen/Statistik/Verkehrsdaten/2021/Bundesstrassen-2021.xlsx?__blob=publicationFile&v=1"
+        }
+      ],
+      "n": 11950,
+      "bbox": [
+        5.8967,
+        47.4134,
+        15.0079,
+        54.8961
+      ]
+    },
+    "koeln": {
+      "name": "Köln",
+      "level": "kommune",
+      "state": "NW",
+      "status": "live",
+      "kind": "zip",
+      "year": 2019,
+      "metric": "DTVw",
+      "license": "dl-de/zero-2.0",
+      "portal": "https://www.offenedaten-koeln.de/dataset/kfz-zaehlstellen-und-werte-koeln",
+      "access": [
+        {
+          "label": "ZIP",
+          "url": "https://www.offenedaten-koeln.de/sites/default/files/distribution/KFZ%2520Zaehldaten%25202016-2019_0.zip"
+        },
+        {
+          "label": "Portal",
+          "url": "https://www.offenedaten-koeln.de/dataset/kfz-zaehlstellen-und-werte-koeln"
+        }
+      ],
+      "n": 2551,
+      "bbox": [
+        6.8268,
+        50.8397,
+        7.1619,
+        51.0706
+      ]
+    },
+    "ravensburg": {
+      "name": "Ravensburg",
+      "level": "kommune",
+      "state": "BW",
+      "status": "live",
+      "kind": "xlsx",
+      "year": 2026,
+      "metric": "24h",
+      "license": "dl-de/by-2.0",
+      "portal": "https://mobidata-bw.de/dataset/zaehldaten-ravensburg",
+      "access": [
+        {
+          "label": "Excel",
+          "url": "https://mobidata-bw.de/daten/portal/RV_Zaehl/Verkehrszaehlungen_RV.xlsx"
+        },
+        {
+          "label": "Portal",
+          "url": "https://mobidata-bw.de/dataset/zaehldaten-ravensburg"
+        }
+      ],
+      "n": 96,
+      "bbox": [
+        9.5164,
+        47.729,
+        9.6329,
+        47.7965
+      ]
     },
     "rp": {
+      "name": "Rheinland-Pfalz",
+      "level": "land",
+      "state": "RP",
+      "status": "research",
+      "kind": "ogcapi",
       "year": 2021,
-      "license": "dl-de/by-2.0",
-      "metric": "DTV"
+      "metric": "DTV",
+      "license": "dl-de/by-2.0"
+    },
+    "hb": {
+      "name": "Bremen",
+      "level": "land",
+      "state": "HB",
+      "status": "blocked",
+      "kind": "pdf",
+      "year": 2010,
+      "metric": "DTV",
+      "license": "CC-BY-4.0"
+    },
+    "he": {
+      "name": "Hessen",
+      "level": "land",
+      "state": "HE",
+      "status": "blocked",
+      "kind": "viewer",
+      "year": 2021,
+      "metric": "DTV",
+      "license": "eingeschränkt"
+    },
+    "mv": {
+      "name": "Mecklenburg-Vorpommern",
+      "level": "land",
+      "state": "MV",
+      "status": "blocked",
+      "kind": "pdf",
+      "year": 2021,
+      "metric": "DTV",
+      "license": "dl-de/by-2.0"
+    },
+    "sh": {
+      "name": "Schleswig-Holstein",
+      "level": "land",
+      "state": "SH",
+      "status": "blocked",
+      "kind": "wfs",
+      "year": 2021,
+      "metric": "DTV",
+      "license": "CC-BY-4.0"
     }
   }
 }

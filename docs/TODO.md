@@ -69,6 +69,18 @@ Gemeinsamer Ausweg für all diese: der **BASt-Backbone** deckt A/B bundesweit ab
 nachgeordnete Netz (L/K) bleibt bei diesen Ländern lückenhaft, bis eine DTV-Tabelle
 (mit VNK/NNK oder Zählstellennr) auftaucht — dann Join wie bei ST/TH.
 
+## Kommunale Daten (Ebene 3, Issue #1)
+
+Konzept + Stand: [Konzept_kommunale_daten.md](Konzept_kommunale_daten.md). Umgesetzt:
+Köln (Linien, DTVw 2016–19) + Ravensburg (Punkte, 24h 2023–26) in `svz_kommunal.pmtiles`,
+Panel nach Ebenen gruppiert, ⌖-Hinzoomen, Übersichts-Marker < Zoom 8. Offen:
+- **Rad/Fuß** aus Ravensburg (optionale Spalten `dtv_rad`/`dtv_fuss` + Legenden-Modus).
+- **Eigener Stil für `metric=24h`** (Einzelzählung ≠ DTV), z.B. gestrichelt.
+- **SV Ravensburg** auffällig hoch (Median ~18 %) – Definition beim Amt erfragen.
+- **Dedup Kommune ↔ Land** im Stadtgebiet (Köln über NRW-Linien) – räumlicher Clip?
+- Weitere Städte: Düsseldorf, Münster, Dresden, Freiburg, Karlsruhe, MobiData-BW-Städte.
+- Panel-Optionen ab ~15 Kommunen: Gruppe zugeklappt, „nur im Ausschnitt", Suchfeld.
+
 ## Sonstiges
 - Punkt-Quellen erledigt: BW + SL als eigener `svz_points`-Layer (Kreis-Layer im Frontend).
 - Frontend: Filter-UI (Jahr / Bundesland / Klasse / Metrik DTV vs. DTVw getrennt).

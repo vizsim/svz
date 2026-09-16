@@ -24,3 +24,21 @@ def test_svz_points_shares_dtv_ladder() -> None:
     args = tiles._profile_args(tiles._profiles()["svz_points"])
     j = args[args.index("-j") + 1]
     assert '"svz_points"' in j and "10000" in j and "1000" in j
+
+
+def test_kommunal_profiles_start_at_zoom_8() -> None:
+    # Kommunen: eigene Layer `kommunal`/`kommunal_points`, erst ab Zoom 8, keine DTV-Leiter.
+    for prof, layer in (("kommunal_lines", "kommunal"), ("kommunal_points", "kommunal_points")):
+        args = tiles._profile_args(tiles._profiles()[prof])
+        assert args[args.index("-l") + 1] == layer
+        assert "--minimum-zoom=8" in args and "-j" not in args
+        assert "--attribute-type=dtv_kfz:int" in args
+
+
+def test_datasets_cover_all_merge_outputs() -> None:
+    # Jede merge-Ausgabe landet in genau einem PMTiles (Frontend-Vertrag: 3 Dateien).
+    from svzkarte import merge
+
+    tiled = {fgb for spec in tiles.DATASETS.values() for _, fgb in spec}
+    assert tiled == set(merge.OUT.values())
+    assert set(tiles.DATASETS) == {"svz_de", "svz_bast", "svz_kommunal"}

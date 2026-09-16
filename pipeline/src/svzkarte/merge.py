@@ -1,10 +1,13 @@
-"""Merge: alle data/interim/<land>.fgb -> nach Datensatz/Geometrie getrennt (validiert).
+"""Merge: alle data/interim/<quelle>.fgb -> nach Ebene × Geometrie getrennt (validiert).
 
-Drei Ausgaben, weil FlatGeobuf nur einen Geometrietyp hält und BASt ein eigenes,
-im Frontend separat schaltbares PMTiles bekommt:
-  - svz_lines.fgb   Länder-Linien (Zählstellenbereiche/Segmente)   -> Layer `svz`
-  - svz_points.fgb  Länder-Punkte (Zählstellen-Standorte, BW/SL)   -> Layer `svz_points`
-  - svz_bast.fgb    BASt-Backbone (Bundesfernstraßen A+B, Punkte)  -> eigenes svz_bast.pmtiles
+FlatGeobuf hält nur einen Geometrietyp, und jede Ebene bekommt ihr eigenes, im
+Frontend separat schaltbares PMTiles — daher fünf mögliche Ausgaben:
+  Länder   (level=land)     svz_lines.fgb / svz_points.fgb          -> svz_de.pmtiles
+  Bund     (level=bund)     svz_bast.fgb   (BASt-Backbone, Punkte)  -> svz_bast.pmtiles
+  Kommunen (level=kommune)  kommunal_lines.fgb / kommunal_points.fgb -> svz_kommunal.pmtiles
+
+Ältere interim-FGB (vor `level`/`name`) werden beim Lesen nachgerüstet — `level` aus
+sources.yaml, `name` leer — damit kein voller Rebuild aller Länder nötig ist.
 """
 
 from __future__ import annotations
@@ -15,13 +18,33 @@ from svzkarte import schema
 from svzkarte.adapters import base
 from svzkarte.config import get_paths
 
-OUT = {"lines": "svz_lines.fgb", "points": "svz_points.fgb", "bast": "svz_bast.fgb"}
+OUT = {
+    "lines": "svz_lines.fgb",
+    "points": "svz_points.fgb",
+    "bast": "svz_bast.fgb",
+    "kommunal_lines": "kommunal_lines.fgb",
+    "kommunal_points": "kommunal_points.fgb",
+}
+
+
+def _backfill(gdf):
+    """Fehlende Schema-Spalten älterer Builds ergänzen (level aus sources.yaml, name=None)."""
+    if "level" not in gdf.columns:
+        gdf["level"] = base.source_level(str(gdf["source"].iloc[0]))
+    if "name" not in gdf.columns:
+        gdf["name"] = None
+    return gdf
 
 
 def _group(gdf) -> str:
-    if "source" in gdf.columns and (gdf["source"] == "bast").all():
+    """Ziel-Gruppe eines Datensatzes: Ebene (level) × Geometrietyp."""
+    is_points = set(gdf.geom_type) <= {"Point", "MultiPoint"}
+    level = str(gdf["level"].iloc[0])
+    if level == "kommune":
+        return "kommunal_points" if is_points else "kommunal_lines"
+    if level == "bund":
         return "bast"  # BASt in eigenes PMTiles, unabhängig vom Geometrietyp
-    return "points" if set(gdf.geom_type) <= {"Point", "MultiPoint"} else "lines"
+    return "points" if is_points else "lines"
 
 
 def merge() -> dict[str, Path]:
@@ -31,12 +54,15 @@ def merge() -> dict[str, Path]:
     paths = get_paths()
     parts = sorted(paths.interim.glob("*.fgb"))
     if not parts:
-        raise FileNotFoundError(f"Keine Länder-FGB in {paths.interim} — erst `svz build all`.")
+        raise FileNotFoundError(f"Keine Quellen-FGB in {paths.interim} — erst `svz build all`.")
 
-    groups: dict[str, list] = {"lines": [], "points": [], "bast": []}
+    groups: dict[str, list] = {k: [] for k in OUT}
     for p in parts:
         g = gpd.read_file(p)
-        groups[_group(g)].append(g)
+        if g.empty:
+            print(f"  {p.name}: leer, übersprungen")
+            continue
+        groups[_group(_backfill(g))].append(g)
 
     written: dict[str, Path] = {}
     for kind, frames in groups.items():
@@ -45,8 +71,9 @@ def merge() -> dict[str, Path]:
         merged = gpd.GeoDataFrame(
             pd.concat(frames, ignore_index=True), geometry="geometry", crs=f"EPSG:{schema.EPSG}"
         )
+        merged = merged[[*schema.COLUMNS, "geometry"]]  # feste Spaltenreihenfolge
         schema.validate(merged, where=f"merge/{kind}")
         out, n = base.write_fgb(merged, paths.svz / OUT[kind])
-        print(f"  {kind}: {len(frames)} Länder, {n} Features -> {out}")
+        print(f"  {kind}: {len(frames)} Quellen, {n} Features -> {out}")
         written[kind] = out
     return written
