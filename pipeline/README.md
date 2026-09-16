@@ -19,8 +19,11 @@ FlatGeobuf (je Ebene) → PMTiles (tippecanoe). Aufbau parallel zu `unfallkarte`
   `data/manifest.json`, woraus der Viewer sein Quellen-Panel baut.
 - **Merge je Ebene × Geometrie** ([merge.py](src/svzkarte/merge.py)) → drei PMTiles
   ([tiles.py](src/svzkarte/tiles.py), Profile in [config/tiles.yaml](config/tiles.yaml)):
-  `svz_de` (Länder), `svz_bast` (Bund), `svz_kommunal` (Kommunen, erst ab Zoom 8).
-- Konzept der Kommunen-Ebene: [../docs/Konzept_kommunale_daten.md](../docs/Konzept_kommunale_daten.md).
+  `svz_de` (Länder), `svz_bast` (Bund), `svz_kommunal` (Kommunen, ab Zoom 8).
+- **Generische Portal-Adapter**: ein Modul mit `normalize(code)` für viele Quellen im
+  selben Format (z.B. `kommunal/mobidata_bw.py`); in sources.yaml per `adapter:` referenziert.
+- Konzept der Kommunen-Ebene: [../docs/Konzept_kommunale_daten.md](../docs/Konzept_kommunale_daten.md);
+  Quellensuche und Verarbeitungsmuster: [../AGENTS.md](../AGENTS.md).
 
 ## CLI
 
@@ -57,6 +60,7 @@ tippecanoe gibt `svz tiles` das Kommando nur aus (kein Abbruch).
 ## Status
 
 Live: **11 Länder** (BE, NI, BY, BB, HH, NW, TH, SN, ST als Linien; BW, SL als Punkte),
-**BASt-Backbone** (A+B, Punkte), **Kommunen: Köln** (Linien, DTVw) und **Ravensburg**
-(Punkte, 24h). Offen: RP (OGC API defekt), HB/HE/MV/SH (kein maschinenlesbarer DTV) –
-Details in [../docs/TODO.md](../docs/TODO.md).
+**BASt-Backbone** (A+B, Punkte), **Kommunen: Köln, Düsseldorf** (Linien) und
+**Ravensburg, Weingarten, Berg, Baienfurt, Baindt** (Punkte, 24h, generischer
+MobiData-BW-Adapter). Offen: RP (OGC API defekt), Frankfurt (WFS 500), HB/HE/MV/SH
+(kein maschinenlesbarer DTV) – Details in [../docs/TODO.md](../docs/TODO.md).

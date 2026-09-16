@@ -25,6 +25,8 @@ OUT = {
     "kommunal_lines": "kommunal_lines.fgb",
     "kommunal_points": "kommunal_points.fgb",
 }
+# Ebene -> Gruppen-Präfix (Bund bleibt der Sonderfall `bast`, nur Punkte).
+_PREFIX = {"land": "", "kommune": "kommunal_"}
 
 
 def _backfill(gdf):
@@ -40,11 +42,9 @@ def _group(gdf) -> str:
     """Ziel-Gruppe eines Datensatzes: Ebene (level) × Geometrietyp."""
     is_points = set(gdf.geom_type) <= {"Point", "MultiPoint"}
     level = str(gdf["level"].iloc[0])
-    if level == "kommune":
-        return "kommunal_points" if is_points else "kommunal_lines"
     if level == "bund":
         return "bast"  # BASt in eigenes PMTiles, unabhängig vom Geometrietyp
-    return "points" if is_points else "lines"
+    return _PREFIX[level] + ("points" if is_points else "lines")
 
 
 def merge() -> dict[str, Path]:

@@ -1,16 +1,18 @@
-"""Golden-Test Ravensburg (Kommune, Punkte): Übersichts-Excel mit 4 Zählblöcken.
+"""Golden-Test MobiData-BW-Zähldaten (generischer Adapter, Kommune, Punkte).
 
 Fixiert: Blöcke -> lange Tabelle, Leerstrings -> NaN, jüngste Zählung je Zählstelle,
-Jahr je Feature (year_from), Straßenklasse/-nummer aus dem NAME-Token, level=kommune.
+Jahr je Feature (year_from), Straßenklasse/-nummer aus dem NAME-Token, level=kommune,
+und dass derselbe Adapter über `normalize(code)` für mehrere Quellen (ravensburg,
+weingarten) arbeitet — inkl. Registry-Bindung des Codes.
 """
 
 from __future__ import annotations
 
 import pandas as pd
 
-from svzkarte import schema
+from svzkarte import registry, schema
 from svzkarte.adapters import base
-from svzkarte.adapters.kommunal import ravensburg
+from svzkarte.adapters.kommunal import mobidata_bw
 
 
 def _fake_excel(*_a, **_k) -> pd.DataFrame:
@@ -41,12 +43,13 @@ def _fake_excel(*_a, **_k) -> pd.DataFrame:
 
 def test_ravensburg_latest_count_per_station(monkeypatch) -> None:
     monkeypatch.setattr(base, "read_excel_zip", _fake_excel)
-    gdf = ravensburg.normalize().sort_values("station_id").reset_index(drop=True)
+    gdf = mobidata_bw.normalize("ravensburg").sort_values("station_id").reset_index(drop=True)
 
     schema.validate(gdf, where="ravensburg")
     assert set(gdf.geom_type) == {"Point"}
     assert len(gdf) == 3                                      # eine Zeile je Zählstelle
     assert set(gdf["level"]) == {"kommune"} and set(gdf["state"]) == {"BW"}
+    assert set(gdf["source"]) == {"ravensburg"}
     assert set(gdf["metric"]) == {"24h"}                      # Einzelzählung, kein DTV
     assert list(gdf["station_id"]) == ["1000", "1005", "1044"]
     # 1000: jüngste Zählung (2024-07-11) gewinnt gegen die erste (2023).
@@ -56,3 +59,13 @@ def test_ravensburg_latest_count_per_station(monkeypatch) -> None:
     assert pd.isna(gdf.loc[0, "road_no"]) and list(gdf["road_no"][1:]) == ["B 32", "L 288"]
     assert gdf.loc[0, "name"] == "Eywiesenstraße / Gartenstraße"   # ohne PLZ/Ort
     assert gdf.loc[1, "name"] == "B 32 / Ulmerstraße"
+
+
+def test_generic_adapter_bound_per_source(monkeypatch) -> None:
+    # Registry bindet den Quellen-Code an normalize(code): gleiche Datei, anderer Ort.
+    monkeypatch.setattr(base, "read_excel_zip", _fake_excel)
+    fn = registry.normalize_fn("weingarten")
+    gdf = fn()
+    assert set(gdf["source"]) == {"weingarten"} and set(gdf["state"]) == {"BW"}
+    # Orts-Token wird nur für den konfigurierten Namen entfernt (hier bleibt "Ravensburg").
+    assert "Ravensburg" in gdf["name"].iloc[0]

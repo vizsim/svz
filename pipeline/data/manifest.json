@@ -336,6 +336,34 @@
         51.0706
       ]
     },
+    "duesseldorf": {
+      "name": "Düsseldorf",
+      "level": "kommune",
+      "state": "NW",
+      "status": "live",
+      "kind": "wfs",
+      "year": 2024,
+      "metric": "DTV",
+      "license": "dl-de/zero-2.0",
+      "portal": "https://opendata.duesseldorf.de/dataset/verkehrsz%C3%A4hldaten-d%C3%BCsseldorf-2024",
+      "access": [
+        {
+          "label": "WFS",
+          "url": "https://maps.duesseldorf.de/services/verkehrszaehlung/wfs?service=WFS&request=GetCapabilities"
+        },
+        {
+          "label": "Portal",
+          "url": "https://opendata.duesseldorf.de/dataset/verkehrsz%C3%A4hldaten-d%C3%BCsseldorf-2024"
+        }
+      ],
+      "n": 2089,
+      "bbox": [
+        6.6919,
+        51.1241,
+        6.9149,
+        51.3514
+      ]
+    },
     "ravensburg": {
       "name": "Ravensburg",
       "level": "kommune",
@@ -364,6 +392,118 @@
         47.7965
       ]
     },
+    "weingarten": {
+      "name": "Weingarten",
+      "level": "kommune",
+      "state": "BW",
+      "status": "live",
+      "kind": "xlsx",
+      "year": 2026,
+      "metric": "24h",
+      "license": "dl-de/by-2.0",
+      "portal": "https://mobidata-bw.de/dataset/zaehldaten-stadt-weingarten",
+      "access": [
+        {
+          "label": "Excel",
+          "url": "https://mobidata-bw.de/daten/portal/WGT_Zaehl/Verkehrszaehlungen-Stadt-Weingarten.xlsx"
+        },
+        {
+          "label": "Portal",
+          "url": "https://mobidata-bw.de/dataset/zaehldaten-stadt-weingarten"
+        }
+      ],
+      "n": 7,
+      "bbox": [
+        9.6256,
+        47.7959,
+        9.6415,
+        47.8173
+      ]
+    },
+    "berg": {
+      "name": "Berg",
+      "level": "kommune",
+      "state": "BW",
+      "status": "live",
+      "kind": "xlsx",
+      "year": 2026,
+      "metric": "24h",
+      "license": "dl-de/by-2.0",
+      "portal": "https://mobidata-bw.de/dataset/zaehldaten-gemeinde-berg",
+      "access": [
+        {
+          "label": "Excel",
+          "url": "https://mobidata-bw.de/daten/portal/Berg_Zaehl/Verkehrszaehlungen-Gemeinde-Berg.xlsx"
+        },
+        {
+          "label": "Portal",
+          "url": "https://mobidata-bw.de/dataset/zaehldaten-gemeinde-berg"
+        }
+      ],
+      "n": 1,
+      "bbox": [
+        9.6059,
+        47.8047,
+        9.6059,
+        47.8047
+      ]
+    },
+    "baienfurt": {
+      "name": "Baienfurt",
+      "level": "kommune",
+      "state": "BW",
+      "status": "live",
+      "kind": "xlsx",
+      "year": 2025,
+      "metric": "24h",
+      "license": "dl-de/by-2.0",
+      "portal": "https://mobidata-bw.de/dataset/zaehldaten-gemeinde-baienfurt",
+      "access": [
+        {
+          "label": "Excel",
+          "url": "https://mobidata-bw.de/daten/portal/Baienfurt_Zaehl/Verkehrszaehlungen-Gemeinde-Baienfurt.xlsx"
+        },
+        {
+          "label": "Portal",
+          "url": "https://mobidata-bw.de/dataset/zaehldaten-gemeinde-baienfurt"
+        }
+      ],
+      "n": 1,
+      "bbox": [
+        9.6515,
+        47.827,
+        9.6515,
+        47.827
+      ]
+    },
+    "baindt": {
+      "name": "Baindt",
+      "level": "kommune",
+      "state": "BW",
+      "status": "live",
+      "kind": "xlsx",
+      "year": 2025,
+      "metric": "24h",
+      "license": "dl-de/by-2.0",
+      "portal": "https://mobidata-bw.de/dataset/zaehldaten-gemeinde-baindt",
+      "access": [
+        {
+          "label": "Excel",
+          "url": "https://mobidata-bw.de/daten/portal/Baindt_Zaehl/Verkehrszaehlungen-Gemeinde-Baindt.xlsx"
+        },
+        {
+          "label": "Portal",
+          "url": "https://mobidata-bw.de/dataset/zaehldaten-gemeinde-baindt"
+        }
+      ],
+      "n": 1,
+      "bbox": [
+        9.6584,
+        47.8417,
+        9.6584,
+        47.8417
+      ]
+    },
     "rp": {
       "name": "Rheinland-Pfalz",
       "level": "land",
@@ -373,6 +513,16 @@
       "year": 2021,
       "metric": "DTV",
       "license": "dl-de/by-2.0"
+    },
+    "frankfurt": {
+      "name": "Frankfurt am Main",
+      "level": "kommune",
+      "state": "HE",
+      "status": "research",
+      "kind": "wfs",
+      "year": 2023,
+      "metric": "DTV",
+      "license": "unbekannt"
     },
     "hb": {
       "name": "Bremen",

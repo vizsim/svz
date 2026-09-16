@@ -30,6 +30,8 @@ def test_every_live_source_has_adapter_module() -> None:
     for code, module in registry.REGISTRY.items():
         mod = importlib.import_module(module)
         assert callable(getattr(mod, "normalize", None)), f"{code}: {module}.normalize fehlt"
-    # Kommunen liegen im Unterpaket adapters/kommunal/.
+    # Kommunen liegen im Unterpaket adapters/kommunal/ (auch generische Portal-Adapter).
     for code in registry.by_level("kommune"):
         assert registry.REGISTRY[code].startswith("svzkarte.adapters.kommunal.")
+    # Generischer Adapter (normalize(code)) wird an den Quellen-Code gebunden.
+    assert registry.normalize_fn("weingarten").args == ("weingarten",)

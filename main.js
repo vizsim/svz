@@ -20,6 +20,7 @@ const HVS_PMTILES_URL =
 // `minZoom` = Mindest-Zoom der Kacheln (tiles.yaml) -> Hinweis im Gruppen-Kopf.
 // Wording: „SVZ" (amtliche Straßenverkehrszählung) nur für Länder + Bund; die Städte
 // zählen selbst -> „kommunale Zählungen", bewusst abgesetzt.
+// `marker`: unterhalb von minZoom je Quelle einen beschrifteten Übersichts-Marker zeigen.
 const LEVELS = {
   land: {
     label: "Länder (SVZ)",
@@ -30,7 +31,7 @@ const LEVELS = {
     label: "Kommunen (eigene Zählungen)",
     dataset: "svz_kommunal",
     layers: [["kommunal-lines", "line", "kommunal"], ["kommunal-points", "circle", "kommunal_points"]],
-    minZoom: 8,
+    minZoom: 8, marker: true,
   },
   bund: {
     label: "Bund (BASt)",
@@ -155,10 +156,9 @@ map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-ri
 map.addControl(new maplibregl.ScaleControl({ unit: "metric" }), "bottom-right");
 
 // --- Titelzeile: SVZ (Länder + BASt) klar getrennt von den kommunalen Zählungen -------
-const nLand = GROUPS.find((g) => g.level === "land").sources.length;
-const nKomm = GROUPS.find((g) => g.level === "kommune").sources.length;
+const count = (level) => GROUPS.find((g) => g.level === level).sources.length;
 document.getElementById("state-line").textContent =
-  `SVZ: ${nLand} Länder + BASt · dazu kommunale Zählungen: ${nKomm} Städte`;
+  `SVZ: ${count("land")} Länder + BASt · dazu kommunale Zählungen: ${count("kommune")} Kommunen`;
 
 // --- Quellen-Panel: je Ebene eine Gruppe (Kopf mit Gruppen-Checkbox + Auf-/Zuklappen),
 //     darunter die Quellen (Name · Jahr · Lizenz · Zugang, ⌖ = hinzoomen) ---------------
@@ -290,8 +290,11 @@ fitPanel();
 function applySources() {
   const on = SOURCES.filter((s) => s.el.checked && !s.layer).map((s) => s.code);
   const filt = ["in", ["get", "source"], ["literal", on]];
-  for (const id of [...ALL_LAYERS.map(([id]) => id), "kommune-marker", "kommune-marker-label"]) {
+  for (const [id] of ALL_LAYERS) {
     if (map.getLayer(id)) map.setFilter(id, filt);
+  }
+  for (const [id, only] of window.__markerLayers || []) {
+    if (map.getLayer(id)) map.setFilter(id, ["all", only, filt]);
   }
   for (const s of SOURCES) {
     if (s.layer && map.getLayer(s.layer)) {
@@ -317,7 +320,7 @@ function updateZoomHints() {
   for (const g of GROUPS) {
     const lvl = LEVELS[g.level];
     const below = lvl.minZoom && z < lvl.minZoom && g.sources.some((s) => s.el.checked);
-    g.hintEl.textContent = below ? `erst ab Zoom ${lvl.minZoom} · Fadenkreuz zoomt hin` : "";
+    g.hintEl.textContent = below ? `erst ab Zoom ${lvl.minZoom}` : "";
   }
   for (const s of SOURCES) {
     if (!s.hintEl) continue;
@@ -389,10 +392,10 @@ map.on("load", () => {
   hvs.paint["line-color"] = hvsColorExpr;
   map.addLayer(hvs, map.getLayer("svz-lines") ? "svz-lines" : firstSymbol);
 
-  // Übersichts-Marker „hier gibt es kommunale Daten": unterhalb des Kommunen-Mindestzooms
-  // je Stadt ein beschrifteter Punkt (BBox-Mitte aus dem Manifest), Klick zoomt hin.
-  // Über den Labels, damit die Städte auf Deutschland-Zoom auffindbar bleiben.
-  const kommunen = GROUPS.find((g) => g.level === "kommune").sources.filter((s) => s.bbox);
+  // Übersichts-Marker „hier gibt es kommunale Daten": unterhalb des Mindestzooms der Ebene
+  // je Quelle ein beschrifteter Punkt (BBox-Mitte aus dem Manifest), Klick zoomt hin. Über
+  // den Labels, damit die Orte auf Deutschland-Zoom auffindbar bleiben.
+  const kommunen = SOURCES.filter((s) => s.bbox && LEVELS[s.level]?.marker);
   // Schrift aus dem Basemap-Style übernehmen (Glyph-Server des Styles), möglichst nicht kursiv.
   const fonts = map.getStyle().layers.flatMap((l) =>
     l.type === "symbol" && Array.isArray(l.layout?.["text-font"]) ? [l.layout["text-font"]] : []);
@@ -403,28 +406,37 @@ map.on("load", () => {
       type: "FeatureCollection",
       features: kommunen.map((s) => ({
         type: "Feature",
-        properties: { source: s.code, name: s.name },
+        properties: { source: s.code, name: s.name, minzoom: LEVELS[s.level].minZoom },
         geometry: { type: "Point", coordinates: [(s.bbox[0] + s.bbox[2]) / 2, (s.bbox[1] + s.bbox[3]) / 2] },
       })),
     },
   });
   // Auffällig gegenüber den Länder-Punkten: größerer weißer Kreis mit blauem Ring, Label
-  // darf Basemap-Labels überdecken (es sind nur wenige Städte).
-  map.addLayer({
-    id: "kommune-marker", type: "circle", source: "kommune-marker", maxzoom: LEVELS.kommune.minZoom,
-    paint: { "circle-radius": 7, "circle-color": "#ffffff", "circle-stroke-color": "#4576c4", "circle-stroke-width": 2.5 },
-  });
-  map.addLayer({
-    id: "kommune-marker-label", type: "symbol", source: "kommune-marker", maxzoom: LEVELS.kommune.minZoom,
-    layout: {
-      "text-field": ["get", "name"], "text-font": font, "text-size": 12,
-      "text-offset": [0, 1.0], "text-anchor": "top", "text-allow-overlap": true, "text-ignore-placement": true,
-    },
-    paint: { "text-color": "#4576c4", "text-halo-color": "#ffffff", "text-halo-width": 1.8 },
-  });
-  map.on("click", "kommune-marker", (e) => zoomTo(SRC[e.features[0].properties.source]));
-  map.on("mouseenter", "kommune-marker", () => (map.getCanvas().style.cursor = "pointer"));
-  map.on("mouseleave", "kommune-marker", () => (map.getCanvas().style.cursor = ""));
+  // darf Basemap-Labels überdecken (es sind nur wenige Orte). Ein Layer-Paar je Mindestzoom
+  // (falls Ebenen mit anderem minZoom dazukommen), weil Filter nicht auf ["zoom"] zugreifen dürfen.
+  const MARKER_LAYERS = [];
+  for (const mz of [...new Set(kommunen.map((s) => LEVELS[s.level].minZoom))]) {
+    const only = ["==", ["get", "minzoom"], mz];
+    map.addLayer({
+      id: `marker-${mz}`, type: "circle", source: "kommune-marker", maxzoom: mz, filter: only,
+      paint: { "circle-radius": 7, "circle-color": "#ffffff", "circle-stroke-color": "#4576c4", "circle-stroke-width": 2.5 },
+    });
+    map.addLayer({
+      id: `marker-${mz}-label`, type: "symbol", source: "kommune-marker", maxzoom: mz, filter: only,
+      layout: {
+        "text-field": ["get", "name"], "text-font": font, "text-size": 12,
+        "text-offset": [0, 1.0], "text-anchor": "top", "text-allow-overlap": true, "text-ignore-placement": true,
+      },
+      paint: { "text-color": "#4576c4", "text-halo-color": "#ffffff", "text-halo-width": 1.8 },
+    });
+    MARKER_LAYERS.push([`marker-${mz}`, only], [`marker-${mz}-label`, only]);
+  }
+  window.__markerLayers = MARKER_LAYERS; // applySources: Filter = Mindestzoom ∧ Quelle aktiv
+  for (const [id] of MARKER_LAYERS.filter(([id]) => !id.endsWith("-label"))) {
+    map.on("click", id, (e) => zoomTo(SRC[e.features[0].properties.source]));
+    map.on("mouseenter", id, () => (map.getCanvas().style.cursor = "pointer"));
+    map.on("mouseleave", id, () => (map.getCanvas().style.cursor = ""));
+  }
 
   // Initiale Quellen-Sichtbarkeit setzen (Layer existieren jetzt).
   applySources();

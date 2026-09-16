@@ -72,13 +72,17 @@ nachgeordnete Netz (L/K) bleibt bei diesen Ländern lückenhaft, bis eine DTV-Ta
 ## Kommunale Daten (Ebene 3, Issue #1)
 
 Konzept + Stand: [Konzept_kommunale_daten.md](Konzept_kommunale_daten.md). Umgesetzt:
-Köln (Linien, DTVw 2016–19) + Ravensburg (Punkte, 24h 2023–26) in `svz_kommunal.pmtiles`,
-Panel nach Ebenen gruppiert, ⌖-Hinzoomen, Übersichts-Marker < Zoom 8. Offen:
-- **Rad/Fuß** aus Ravensburg (optionale Spalten `dtv_rad`/`dtv_fuss` + Legenden-Modus).
+Köln, Düsseldorf (Linien), Ravensburg, Weingarten, Berg, Baienfurt, Baindt (Punkte,
+24h) in `svz_kommunal.pmtiles`; Panel nach Ebenen gruppiert, Hinzoomen, Übersichts-Marker.
+Lausitz (DiSTILL) geprüft und verworfen (identisch mit bb/sn). Offen:
+- **Frankfurt** (HE): WFS liefert 500 → regelmäßig prüfen (`status: research`).
+- **Rad/Fuß** aus den MobiData-Excels (optionale Spalten `dtv_rad`/`dtv_fuss` + Legenden-Modus)
+  – vom Nutzer vorerst zurückgestellt.
 - **Eigener Stil für `metric=24h`** (Einzelzählung ≠ DTV), z.B. gestrichelt.
-- **SV Ravensburg** auffällig hoch (Median ~18 %) – Definition beim Amt erfragen.
-- **Dedup Kommune ↔ Land** im Stadtgebiet (Köln über NRW-Linien) – räumlicher Clip?
-- Weitere Städte: Düsseldorf, Münster, Dresden, Freiburg, Karlsruhe, MobiData-BW-Städte.
+- **SV Ravensburg/Weingarten** auffällig hoch (Median 14–18 %) – Definition beim Amt erfragen.
+- **Dedup Kommune ↔ Land** im Stadtgebiet (Köln/Düsseldorf über NRW-Linien) – räumlicher
+  Clip oder Vorrangregel.
+- Dresden: WFS-Knoten des Themenstadtplan-Themas `STA_VERKEHRSMENGEN` finden.
 - Panel-Optionen ab ~15 Kommunen: Gruppe zugeklappt, „nur im Ausschnitt", Suchfeld.
 
 ## Sonstiges

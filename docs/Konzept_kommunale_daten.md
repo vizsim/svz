@@ -63,6 +63,18 @@ Warum ein **eigenes PMTiles** für Kommunen (statt sie in `svz_de` zu mischen):
 - Spiegelt die Herausgeber-Struktur (Bund / Land / Kommune) 1:1 – das ist auch die
   Gliederung, die Nutzer im Panel wiedererkennen.
 
+### 2b. Abgeleitete regionale Datensätze – geprüft und verworfen
+
+Beim Suchen nach Kommunen tauchte ein Typ auf, der in keine der drei Ebenen passt:
+**regionale Auswertungen, die die SVZ-Werte der Länder auf ein anderes Netz legen** –
+die DiSTILL-Daten der IPG Lausitz (SVZ 2021 BB+SN auf OSM-Ways, mit Fahrstreifen und
+Auslastungsgrad). Ein Testlauf als eigene Ebene `region` zeigte: alle 371 Zählstellen
+sind mit **identischem DTV** bereits in den Landesdaten von BB und SN, keine einzige
+kommt hinzu; neu sind nur die OSM-Geometrie und Zusatzgrößen, die das Schema nicht
+abbildet. Ergebnis: wieder ausgebaut. **Regel daraus:** Vor dem Anschluss eines
+abgeleiteten Datensatzes per Zählstellennummer gegen die vorhandenen Quellen prüfen, ob
+er überhaupt neue Werte bringt (s. [AGENTS.md](../AGENTS.md)).
+
 ## 3. Pipeline-Struktur (umgesetzt)
 
 ### 3.1 `sources.yaml` ist die einzige Quellenliste
@@ -120,6 +132,16 @@ typischen Muster ab:
   entfallen (2.551 bleiben). Metrik DTVw, `road_class` G, `name` = Straßenname.
 
 Beide haben Offline-Golden-Tests (monkeypatch der Holer) wie die Länder.
+
+Zweite Runde (5 weitere Quellen) brachte zwei weitere Muster:
+
+- **Generischer Portal-Adapter** ([mobidata_bw.py](../pipeline/src/svzkarte/adapters/kommunal/mobidata_bw.py)):
+  MobiData BW verteilt für Ravensburg, Weingarten, Berg, Baienfurt und Baindt dasselbe
+  Excel-Format. Ein Modul mit `normalize(code)`, in `sources.yaml` per `adapter:`
+  referenziert; die Registry bindet den Quellen-Code. Neue Kommune = ein YAML-Eintrag.
+- **Ein WFS-Layer je Fahrzeugart** ([duesseldorf.py](../pipeline/src/svzkarte/adapters/kommunal/duesseldorf.py)):
+  Kfz, Lkw oA/mA, Bus als getrennte Layer mit eigenen UUIDs, aber identischer Geometrie
+  → Join über `geometry.wkb`; 5-Jahres-Mittel vor 10-Jahres-Mittel, Endjahr je Feature.
 
 ## 4. Frontend / UI (umgesetzt)
 
@@ -179,20 +201,24 @@ Dutzende Städte kommen?
 - **`road_class` bei Kommunen**: `G` ist ein Sammelwert. Alternative wäre ein eigener
   Code „S" (Stadtstraße/unbekannt); bewusst nicht eingeführt, um die Enum klein zu halten.
 
-## 6. Weitere kommunale Kandidaten (Recherche, ungeprüft)
+## 6. Kandidaten-Sweep (Stand September 2026)
 
-Nur Portale mit maschinenlesbaren Kfz-Zählungen; Aufnahme jeweils nach Live-Check
-(Format, Lizenz, Koordinaten):
+Systematische Suche über GovData-CKAN, Landesportale und Stadtportale (Methode und
+Suchbegriffe: [AGENTS.md](../AGENTS.md)). Ergebnis:
 
-| Stadt | Land | Hinweis |
+| Stadt/Region | Land | Ergebnis |
 |---|---|---|
-| Düsseldorf | NW | [Verkehrszähldaten Düsseldorf](https://opendata.duesseldorf.de/dataset/verkehrsz%C3%A4hldaten-d%C3%BCsseldorf) (Open Data Düsseldorf) |
-| Münster | NW | [Verkehrszählung – manuelle Verkehrserhebung](https://opendata.stadt-muenster.de/dataset/verkehrsz%C3%A4hlung-manuelle-verkehrserhebung) |
-| Dresden | SN | OpenData-Portal / kommisdd-WFS – Straßenknotennetz vorhanden, DTV-Layer zu prüfen |
-| Freiburg | BW | 25 Sensor-Dauerzählstellen (FR.ITZ / opendata.freiburg.de); Kfz-DTV zu prüfen |
-| Karlsruhe | BW | transparenz.karlsruhe.de – Verkehrszählungen zu prüfen |
-| weitere BW-Städte | BW | MobiData BW, Gruppe [Verkehrszähldaten](https://mobidata-bw.de/group/verkehrszaehldaten) – Ravensburg ist dort das Muster |
+| Düsseldorf | NW | ✅ integriert (GeoServer-WFS, DTVa 2024, SV über Geometrie-Join) |
+| Lausitz (DiSTILL) | BB+SN | ⛔ verworfen: SVZ 2021 BB+SN auf OSM-Ways, alle 371 Zählstellen mit identischem DTV schon in bb/sn |
+| Weingarten, Berg, Baienfurt, Baindt | BW | ✅ integriert (MobiData-BW-Format, generischer Adapter) |
+| Frankfurt am Main | HE | 🔎 `research`: WFS vorhanden, GetFeature → 500; erste HE-Quelle, sobald der Dienst läuft |
+| Münster | NW | ⛔ nur PDF/XLS je Einzelzählung (Spitzenstunden), Zählstellen-CSV ohne Werte |
+| Potsdam | BB | ⛔ nur Knotenstandorte, Zählergebnisse als PDF-ZIP je Knoten |
+| Dortmund | NW | ⛔ nur Zählstellenplan (Standorte 1998–2024), Werte kostenpflichtig auf Anfrage |
+| Stuttgart | BW | ⛔ Kordon-Summen (Markungsgrenze/Kesselrand) ohne Koordinaten |
+| Dresden | SN | 🔎 Themenstadtplan „Verkehrsmengen in Kfz/Tag" (Layer L1204–L1206); WFS-NodeId nicht gefunden, Portal 503 |
+| Konstanz, Ettlingen, Gelsenkirchen | BW/NW | ⛔ Echtzeit-/Stundenwerte (DATEX, Sensoren), kein DTV |
+| Mannheim, Leipzig, Heidelberg, Aachen | – | ⛔ nur Rad-Zählstellen |
+| Kiel, Rostock, Bremen, Hannover, Bonn, Wuppertal, Bielefeld, München | – | keine maschinenlesbaren Kfz-Zählungen gefunden (oder Portal-API nicht erreichbar) |
 
-Suchbegriffe: *Verkehrszählung*, *Zähldaten*, *Knotenpunktzählung*, *Verkehrsmengen*,
-*DTV* in Verbindung mit dem Open-Data-Portal der Stadt (CKAN/DKAN) bzw. dem
-Landes-Mobilitätsportal (MobiData BW, open.nrw, opendata.dresden.de).
+Offen bleibt damit vor allem **Hessen** (Frankfurt) und eine Stadt in **Sachsen** (Dresden).

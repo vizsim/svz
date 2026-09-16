@@ -132,13 +132,22 @@ def fetch_atom(feed_url: str, *, match: str | None = None) -> GeoDataFrame:
     return gpd.read_file(io.BytesIO(data))
 
 
-def fetch_zip(url: str, *, layer: str | None = None) -> GeoDataFrame:
+def fetch_zip(
+    url: str,
+    *,
+    layer: str | None = None,
+    member: str | None = None,
+    headers: dict[str, str] | None = None,
+) -> GeoDataFrame:
     """Lädt ein gezipptes Vektordataset direkt (z.B. NI-Downloadservice-ZIP) und
     liest es als GeoDataFrame — inklusive Shapefile-Sidecars (.dbf/.shx/.prj).
-    `layer` wählt bei ZIPs mit mehreren Shapefiles das gewünschte (z.B. Köln link/node).
+    `layer` wählt bei ZIPs mit mehreren Shapefiles das gewünschte (z.B. Köln link/node),
+    `member` eine bestimmte Datei im ZIP (z.B. eines von mehreren GeoJSONs in Mobilithek-Paketen).
+    `headers` ergänzt/überschreibt den User-Agent (Mobilithek liefert ohne Browser-UA
+    eine HTML-Seite statt der Datei).
     """
-    data = requests.get(url, headers=_UA, timeout=_TIMEOUT).content
-    return _read_zip_vector(data, layer=layer)
+    data = requests.get(url, headers={**_UA, **(headers or {})}, timeout=_TIMEOUT).content
+    return _read_zip_vector(data, layer=layer, member=member)
 
 
 def fetch_geojson(url: str) -> GeoDataFrame:
@@ -149,7 +158,9 @@ def fetch_geojson(url: str) -> GeoDataFrame:
     return gpd.read_file(io.BytesIO(data))
 
 
-def _read_zip_vector(data: bytes, *, layer: str | None = None) -> GeoDataFrame:
+def _read_zip_vector(
+    data: bytes, *, layer: str | None = None, member: str | None = None
+) -> GeoDataFrame:
     import os
     import tempfile
 
@@ -162,6 +173,8 @@ def _read_zip_vector(data: bytes, *, layer: str | None = None) -> GeoDataFrame:
     tmp = Path(name)
     try:
         tmp.write_bytes(data)
+        if member:
+            return gpd.read_file(f"zip://{tmp}!{member}")
         return gpd.read_file(tmp, layer=layer) if layer else gpd.read_file(tmp)
     finally:
         tmp.unlink(missing_ok=True)

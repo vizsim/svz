@@ -226,12 +226,33 @@ sources:
       - { label: ZIP, url: "https://www.offenedaten-koeln.de/sites/default/files/distribution/KFZ%2520Zaehldaten%25202016-2019_0.zip" }
       - { label: Portal, url: "https://www.offenedaten-koeln.de/dataset/kfz-zaehlstellen-und-werte-koeln" }
 
+  duesseldorf:
+    status: live
+    level: kommune
+    name: "Düsseldorf"
+    state: NW
+    ags: "05111000"
+    kind: wfs             # GeoServer-WFS 2.0.0 (JSON), je Fahrzeugart ein Layer; Join über Geometrie
+    url: "https://maps.duesseldorf.de/services/verkehrszaehlung/wfs"
+    portal: "https://opendata.duesseldorf.de/dataset/verkehrsz%C3%A4hldaten-d%C3%BCsseldorf-2024"
+    year: 2024            # DTVa = Mittel 2020–2024 (sonst 2015–2024); year je Feature (Adapter: duesseldorf.py)
+    license: "dl-de/zero-2.0"  # DCAT-AP.de-Export des Portals: dl-zero-de/2.0
+    metric: DTV           # DTVa (Kfz/24h Mo–So inkl. Feier-/Ferientage), aus 16h-Werktagszählungen
+    access:
+      - { label: WFS, url: "https://maps.duesseldorf.de/services/verkehrszaehlung/wfs?service=WFS&request=GetCapabilities" }
+      - { label: Portal, url: "https://opendata.duesseldorf.de/dataset/verkehrsz%C3%A4hldaten-d%C3%BCsseldorf-2024" }
+
+  # --- MobiData BW „Straßenverkehrszählungen <Kommune>": ein generischer Adapter für alle
+  #     (adapters/kommunal/mobidata_bw.py, normalize(code)); Format s. dort. Jüngste Zählung je
+  #     Zählstelle, 24h-Einzelzählung (kein DTV). Schussental-Kommunen, aufbereitet vom
+  #     Stadtplanungsamt Ravensburg.
   ravensburg:
     status: live
     level: kommune
     name: "Ravensburg"
     state: BW
     ags: "08436064"
+    adapter: svzkarte.adapters.kommunal.mobidata_bw
     kind: xlsx            # Übersichts-Excel: ID/NAME/BREITENGRAD/LAENGENGRAD + 4 Zählblöcke KFZ_n/SV_n/DATUM_n
     url: "https://mobidata-bw.de/daten/portal/RV_Zaehl/Verkehrszaehlungen_RV.xlsx"
     portal: "https://mobidata-bw.de/dataset/zaehldaten-ravensburg"
@@ -241,6 +262,74 @@ sources:
     access:
       - { label: Excel, url: "https://mobidata-bw.de/daten/portal/RV_Zaehl/Verkehrszaehlungen_RV.xlsx" }
       - { label: Portal, url: "https://mobidata-bw.de/dataset/zaehldaten-ravensburg" }
+
+  weingarten:
+    status: live
+    level: kommune
+    name: "Weingarten"
+    state: BW
+    adapter: svzkarte.adapters.kommunal.mobidata_bw
+    kind: xlsx
+    url: "https://mobidata-bw.de/daten/portal/WGT_Zaehl/Verkehrszaehlungen-Stadt-Weingarten.xlsx"
+    portal: "https://mobidata-bw.de/dataset/zaehldaten-stadt-weingarten"
+    year: 2025            # 8 Zählstellen; year je Feature
+    license: "dl-de/by-2.0"
+    metric: "24h"
+    access:
+      - { label: Excel, url: "https://mobidata-bw.de/daten/portal/WGT_Zaehl/Verkehrszaehlungen-Stadt-Weingarten.xlsx" }
+      - { label: Portal, url: "https://mobidata-bw.de/dataset/zaehldaten-stadt-weingarten" }
+
+  berg:
+    status: live
+    level: kommune
+    name: "Berg"
+    state: BW
+    adapter: svzkarte.adapters.kommunal.mobidata_bw
+    kind: xlsx
+    url: "https://mobidata-bw.de/daten/portal/Berg_Zaehl/Verkehrszaehlungen-Gemeinde-Berg.xlsx"
+    portal: "https://mobidata-bw.de/dataset/zaehldaten-gemeinde-berg"
+    year: 2025            # 1 Zählstelle
+    license: "dl-de/by-2.0"
+    metric: "24h"
+    access:
+      - { label: Excel, url: "https://mobidata-bw.de/daten/portal/Berg_Zaehl/Verkehrszaehlungen-Gemeinde-Berg.xlsx" }
+      - { label: Portal, url: "https://mobidata-bw.de/dataset/zaehldaten-gemeinde-berg" }
+
+  baienfurt:
+    status: live
+    level: kommune
+    name: "Baienfurt"
+    state: BW
+    adapter: svzkarte.adapters.kommunal.mobidata_bw
+    kind: xlsx
+    url: "https://mobidata-bw.de/daten/portal/Baienfurt_Zaehl/Verkehrszaehlungen-Gemeinde-Baienfurt.xlsx"
+    portal: "https://mobidata-bw.de/dataset/zaehldaten-gemeinde-baienfurt"
+    year: 2025            # 1 Zählstelle
+    license: "dl-de/by-2.0"
+    metric: "24h"
+    access:
+      - { label: Excel, url: "https://mobidata-bw.de/daten/portal/Baienfurt_Zaehl/Verkehrszaehlungen-Gemeinde-Baienfurt.xlsx" }
+      - { label: Portal, url: "https://mobidata-bw.de/dataset/zaehldaten-gemeinde-baienfurt" }
+
+  baindt:
+    status: live
+    level: kommune
+    name: "Baindt"
+    state: BW
+    adapter: svzkarte.adapters.kommunal.mobidata_bw
+    kind: xlsx
+    url: "https://mobidata-bw.de/daten/portal/Baindt_Zaehl/Verkehrszaehlungen-Gemeinde-Baindt.xlsx"
+    portal: "https://mobidata-bw.de/dataset/zaehldaten-gemeinde-baindt"
+    year: 2025            # 1 Zählstelle
+    license: "dl-de/by-2.0"
+    metric: "24h"
+    access:
+      - { label: Excel, url: "https://mobidata-bw.de/daten/portal/Baindt_Zaehl/Verkehrszaehlungen-Gemeinde-Baindt.xlsx" }
+      - { label: Portal, url: "https://mobidata-bw.de/dataset/zaehldaten-gemeinde-baindt" }
+
+  # Geprüft und verworfen (kein Mehrwert): „Straßenverkehrszählungsdaten der Lausitz" (IPG/
+  # DiSTILL, Mobilithek 983406200238284800) legt die SVZ 2021 von BB+SN auf OSM-Ways — alle
+  # 371 Zählstellen sind mit identischem DTV bereits in bb/sn enthalten (nur Geometrie/Spuren neu).
 
   # ============================================================================
   # RESEARCH — Dienst existiert, liefert aber (noch) keine Daten
@@ -256,6 +345,20 @@ sources:
     # Stand 2026: liefert serverseitig "Wfs object could not be created from db!" -> warten.
     year: 2021
     license: "dl-de/by-2.0"
+    metric: DTV
+
+  frankfurt:
+    status: research      # WFS existiert (GetCapabilities/DescribeFeatureType ok), GetFeature -> HTTP 500
+    level: kommune
+    name: "Frankfurt am Main"
+    state: HE
+    kind: wfs             # WFS 1.1.0, FeatureTypes opendata_zaehlstellen:zs_kfz24 / zs_lkw24 /
+    url: "https://geowebdienste.frankfurt.de/Verkehrsmengen"   # zs_lkw_ohneanhaenger24 / zs_rad24
+    # Felder: mittl_bel (Mittel 2019–2023), str_name, str_nr, kno_von/kno_nach, zp_nr; Linien.
+    # Stand 09/2026: jede GetFeature-Variante (1.0/1.1/2.0, GET/POST, json/gml) -> 500-Seite
+    # des Geoportals. Wertvoll, weil Hessen sonst keine maschinenlesbaren DTV liefert -> warten.
+    year: 2023
+    license: "unbekannt"  # Metadatensatz (geodatenkatalog.frankfurt.de ff2e21db-…) liefert 404
     metric: DTV
 
   # ============================================================================

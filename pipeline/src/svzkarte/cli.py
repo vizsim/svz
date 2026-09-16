@@ -71,7 +71,7 @@ def tiles(
         "", "--only", help="nur diese Datensätze (Komma): svz_de, svz_bast, svz_kommunal"
     ),
 ) -> None:
-    """svz_de.pmtiles (Länder) + svz_bast.pmtiles (Bund) + svz_kommunal.pmtiles (Kommunen)."""
+    """Ein PMTiles je Ebene: svz_de (Länder), svz_bast (Bund), svz_kommunal (Kommunen)."""
     from svzkarte import tiles as tiles_mod
 
     wanted = {s.strip() for s in only.split(",") if s.strip()} or None

@@ -60,8 +60,19 @@ def by_level(level: str) -> list[str]:
 
 
 def normalize_fn(code: str) -> Callable[[], GeoDataFrame]:
-    """Lädt das Adapter-Modul und gibt dessen `normalize`-Funktion zurück."""
+    """Lädt das Adapter-Modul und gibt dessen `normalize`-Funktion zurück.
+
+    Generische Portal-Adapter (ein Modul für viele Quellen im selben Format, z.B.
+    `kommunal.mobidata_bw`) deklarieren `normalize(code)`; dann wird der Quellen-Code
+    gebunden. Klassische Adapter haben `normalize()` ohne Parameter.
+    """
+    import functools
+    import inspect
+
     if code not in REGISTRY:
         raise KeyError(code)
     mod = importlib.import_module(REGISTRY[code])
-    return mod.normalize
+    fn = mod.normalize
+    if inspect.signature(fn).parameters:
+        return functools.partial(fn, code)
+    return fn

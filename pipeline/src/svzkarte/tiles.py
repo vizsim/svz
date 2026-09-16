@@ -108,7 +108,7 @@ DATASETS: dict[str, list[tuple[str, str]]] = {
 
 
 def build_svz(*, dry_run: bool = False, only: set[str] | None = None) -> dict[str, Path]:
-    """Drei PMTiles (je Ebene, im Frontend separat schaltbar):
+    """Ein PMTiles je Ebene (im Frontend separat schaltbar):
       - svz_de.pmtiles       Länder: svz_lines.fgb (`svz`) + svz_points.fgb (`svz_points`)
       - svz_bast.pmtiles     Bund:   svz_bast.fgb (`bast`), der BASt-Backbone
       - svz_kommunal.pmtiles Kommunen: kommunal_lines.fgb (`kommunal`) + kommunal_points.fgb

@@ -62,6 +62,11 @@ def _source_entry(code: str, src: dict[str, Any]) -> dict[str, Any]:
         info = pyogrio.read_info(fgb)
         entry["n"] = int(info["features"])
         entry["bbox"] = [round(float(v), 4) for v in info["total_bounds"]]  # W,S,E,N (4326)
+        # Jüngstes Bezugsjahr aus den Daten (Quellen mit Jahr je Feature: das YAML-Jahr ist
+        # nur der Fallback, im Panel steht, was wirklich drin ist).
+        years = pyogrio.read_dataframe(fgb, columns=["year"], read_geometry=False)["year"]
+        if len(years):
+            entry["year"] = int(years.max())
     return entry
 
 

@@ -14,10 +14,12 @@ Pipeline + CLI: siehe [pipeline/README.md](pipeline/README.md).
 
 **Stand: SVZ 11 Länder + BASt-Backbone (A+B) · 66.330 Segmente/Zählstellen** (Linien +
 Punkte; Länder in `svz_de.pmtiles`, BASt separat schaltbar in `svz_bast.pmtiles`) **·
-dazu kommunale Zählungen aus 2 Städten (Köln, Ravensburg) · 2.647 Kanten/Zählstellen**
-in `svz_kommunal.pmtiles`. Kanonische Felder je Feature: `dtv_kfz`, `dtv_sv`, `sv_anteil`,
-`metric` (DTV/DTVw/24h), `year`, `road_class` (A/B/L/K/G), `road_no`, `name`,
-`station_id`, `state`, `source`, `level` (bund/land/kommune), `license`.
+dazu kommunale Zählungen aus 7 Kommunen (Köln, Düsseldorf, Ravensburg, Weingarten, Berg,
+Baienfurt, Baindt) · 4.746 Kanten/Zählstellen** in `svz_kommunal.pmtiles`.
+Kanonische Felder je Feature: `dtv_kfz`, `dtv_sv`, `sv_anteil`, `metric` (DTV/DTVw/24h),
+`year`, `road_class` (A/B/L/K/G), `road_no`, `name`, `station_id`, `state`, `source`,
+`level` (bund/land/kommune), `license`. Wie man Quellen findet und verarbeitet:
+[AGENTS.md](AGENTS.md).
 
 ## Hintergrund: SVZ, Zuständigkeiten, BASt
 
@@ -97,12 +99,22 @@ Deutschland-Zoom markiert ein beschrifteter Punkt je Stadt, dass es dort Daten g
 
 | Stadt | Land | Status | Zugang (URL) | Geom | Jahr | Metrik | SV | Lizenz | Features | Anmerkung |
 |---|---|---|---|---|---|---|---|---|--:|---|
+| **Düsseldorf** | NW | ✅ | [WFS](https://maps.duesseldorf.de/services/verkehrszaehlung/wfs?service=WFS&request=GetCapabilities) · [Portal](https://opendata.duesseldorf.de/dataset/verkehrsz%C3%A4hldaten-d%C3%BCsseldorf-2024) | Linien | 2024 | DTV | abs | dl-de/zero-2.0 | 2.089 | GeoServer-WFS mit einem Layer je Fahrzeugart; **DTVa** = Mittel der Zählungen 2020–2024 (sonst 2015–2024), hochgerechnet aus 16h-Werktagszählungen. SV = Lkw oA + Lkw mA + Bus, über identische Geometrien gejoint. |
 | **Köln** | NW | ✅ | [ZIP](https://www.offenedaten-koeln.de/sites/default/files/distribution/KFZ%2520Zaehldaten%25202016-2019_0.zip) · [Portal](https://www.offenedaten-koeln.de/dataset/kfz-zaehlstellen-und-werte-koeln) | Linien | 2016–2019 | **DTVw** | – | dl-de/zero-2.0 | 2.551 | VISUM-Netzexport (Shapefile, GK2), Werte **je Richtung und Jahr**; je Kante jüngstes Jahr mit beiden Richtungen (Summe), sonst eine Richtung. Nur Kanten mit Werten. |
 | **Ravensburg** | BW | ✅ | [Excel](https://mobidata-bw.de/daten/portal/RV_Zaehl/Verkehrszaehlungen_RV.xlsx) · [Portal](https://mobidata-bw.de/dataset/zaehldaten-ravensburg) | Punkte | 2023–2026 | **24h** | abs | dl-de/by-2.0 | 96 | Knotenpunkt-Zählungen (Di/Do, 24 h), je Zählstelle die **jüngste** Zählung; SV lt. Quelle auffällig hoch (Median ~18 %). Rad/Fuß im Excel enthalten, noch nicht im Schema. |
+| **Weingarten** | BW | ✅ | [Excel](https://mobidata-bw.de/daten/portal/WGT_Zaehl/Verkehrszaehlungen-Stadt-Weingarten.xlsx) · [Portal](https://mobidata-bw.de/dataset/zaehldaten-stadt-weingarten) | Punkte | 2023–2026 | **24h** | abs | dl-de/by-2.0 | 7 | Gleiches MobiData-BW-Format wie Ravensburg → **ein generischer Adapter** (`kommunal/mobidata_bw.py`), nur ein YAML-Eintrag je Kommune. |
+| **Berg** · **Baienfurt** · **Baindt** | BW | ✅ | [Berg](https://mobidata-bw.de/dataset/zaehldaten-gemeinde-berg) · [Baienfurt](https://mobidata-bw.de/dataset/zaehldaten-gemeinde-baienfurt) · [Baindt](https://mobidata-bw.de/dataset/zaehldaten-gemeinde-baindt) | Punkte | 2026 | **24h** | abs | dl-de/by-2.0 | je 1 | Schussental-Gemeinden, je eine Zählstelle, derselbe Adapter. Zeigen, dass kleine Kommunen ohne Code-Änderung dazukommen. |
+| Frankfurt am Main | HE | 🔎 | [WFS](https://geowebdienste.frankfurt.de/Verkehrsmengen?service=WFS&version=1.1.0&request=GetCapabilities) | Linien | 2019–2023 | DTV | abs | unbekannt | – | WFS `Verkehrsmengen` (Kfz/Lkw/Rad-Mittel 2019–2023) existiert, **jedes GetFeature liefert HTTP 500** (Stand 09/2026) → `research`. Wäre die erste Quelle für Hessen. |
 
-Weitere Kandidaten (Düsseldorf, Münster, Dresden, Freiburg, Karlsruhe, MobiData-BW-Städte)
-stehen ungeprüft im Konzept. Neue Stadt = Eintrag in `sources.yaml` + Adapter-Datei +
-Golden-Test; das Frontend-Panel baut sich aus `data/manifest.json`.
+Geprüft und (vorerst) verworfen: Münster (nur PDF/XLS je Einzelzählung), Potsdam (nur
+Knotenstandorte + PDF), Dortmund (Zählstellenplan, Werte kostenpflichtig), Stuttgart
+(Kordon-Summen ohne Koordinaten), Dresden (Themenstadtplan-Thema vorhanden, WFS-Knoten
+nicht auffindbar), Konstanz/Mannheim/Leipzig/Heidelberg (nur Rad bzw. Echtzeit),
+**Lausitz (DiSTILL, Mobilithek)**: legt die SVZ 2021 von BB+SN auf OSM-Ways – alle 371
+Zählstellen sind mit identischem DTV schon in den Landesdaten, also kein Mehrwert. Details
+und Suchstrategie in [AGENTS.md](AGENTS.md). Neue Stadt = Eintrag in `sources.yaml` +
+Adapter-Datei (oder `adapter:` auf einen generischen) + Golden-Test; das Frontend-Panel
+baut sich aus `data/manifest.json`.
 
 **Fehlt eine Zählung?** Du kennst eine offizielle Quelle (Bundesland oder Stadt/Gemeinde),
 die hier noch nicht drin ist? **[Kurz melden](https://github.com/vizsim/svz/issues/new?template=fehlende-zaehlung.yml)** –
@@ -112,10 +124,11 @@ Ort und Link genügen, den Rest übernehmen wir.
 
 ```text
 svz/
+├─ AGENTS.md                           # Learnings: Quellen finden, Quellentypen, Verarbeitungsmuster, Sackgassen
 ├─ index.html · main.js · style.css   # MapLibre-Viewer (OpenFreeMap Positron); Quellen-Panel aus manifest.json
 ├─ pipeline/                           # uv-Paket "svzkarte": Adapter -> merge (je Ebene) -> tiles
 │  ├─ src/svzkarte/adapters/<code>.py  # ein Adapter je Land/Bund (SVZ), normalize() -> GeoDataFrame
-│  ├─ src/svzkarte/adapters/kommunal/  # ein Adapter je Stadt (kommunale Zählungen: ravensburg.py, koeln.py)
+│  ├─ src/svzkarte/adapters/kommunal/  # Kommunen: koeln.py, duesseldorf.py, mobidata_bw.py (generisch, normalize(code))
 │  ├─ config/sources.yaml              # DIE Quellenliste: level/name/state/status/kind/url/year/license/access
 │  ├─ config/tiles.yaml                # tippecanoe-Profile (svz_lines/svz_points/bast_points/kommunal_*)
 │  └─ data/manifest.json               # generiert (`svz manifest`): Datensätze + Quellen (bbox) fürs Frontend
