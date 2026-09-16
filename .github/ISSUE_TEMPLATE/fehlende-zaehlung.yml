@@ -1,0 +1,43 @@
+name: "Fehlende Zählung melden"
+description: "Du kennst eine offizielle Verkehrszählung (Bundesland oder Stadt), die hier noch fehlt? Link reicht."
+title: "[Quelle] <Ort>"
+labels: ["datenquelle"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Danke! Ort + Link genügen – den Rest schauen wir uns an.
+        Welche Länder schon drin sind, zeigt die [Quellen-Tabelle im README](https://github.com/vizsim/svz#datenquellen-der-16-bundesl%C3%A4nder).
+
+  - type: dropdown
+    id: ebene
+    attributes:
+      label: Bundesland oder Kommune?
+      options:
+        - "Bundesland"
+        - "Stadt / Gemeinde / Landkreis"
+    validations:
+      required: true
+
+  - type: input
+    id: ort
+    attributes:
+      label: Ort
+      placeholder: "z.B. Hessen – oder Ravensburg"
+    validations:
+      required: true
+
+  - type: input
+    id: url
+    attributes:
+      label: Link zur Quelle
+      description: Download, WFS/API-Endpunkt oder die Seite im Open-Data-Portal.
+      placeholder: "https://…"
+    validations:
+      required: true
+
+  - type: textarea
+    id: mehr
+    attributes:
+      label: Sonst noch was? (optional)
+      description: Falls bekannt – Jahr, Lizenz, Format, Herausgeber. Kein Muss.
