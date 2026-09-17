@@ -71,6 +71,11 @@ alle, die neue Quellen anschließen – Menschen wie Agenten. Ergänzt
 - **Alles landet in `base.to_canonical`**: Spalten-Mapping, Konstanten, Reprojektion,
   Fremdspalten weg. `year_from=` statt `year=`, sobald Jahre je Feature variieren.
   `level` kommt automatisch aus `sources.yaml` über `source`.
+- **0 heißt „nicht gezählt", nicht „kein Verkehr"** (Issue #2): fast jede Quelle füllt
+  Abschnitte ohne Zählwert mit 0 (NW allein 1.228). `base.normalize_counts` (in
+  `to_canonical` und beim `merge` älterer interim-FGB) macht aus `dtv_kfz = 0` leer → die
+  Karte zeigt grau „keine Angabe". `dtv_sv = 0` bleibt nur neben einem echten Kfz-Wert.
+  Bei neuen Quellen prüfen: klafft zwischen 0 und dem kleinsten echten Wert eine Lücke?
 - **Jüngste Zählung je Zählstelle** (MobiData-Excel mit Zählblöcken `KFZ_n/DATUM_n`):
   Blöcke in lange Tabelle, numerisch erzwingen, `sort_values(datum).groupby(id).tail(1)`.
 - **Richtungswerte** (Köln `K_<Jahr>` / `R_K_<Jahr>`): jüngstes Jahr mit beiden Richtungen

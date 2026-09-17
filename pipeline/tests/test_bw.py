@@ -32,4 +32,6 @@ def test_bw_points_normalize(monkeypatch) -> None:
     assert set(gdf["state"]) == {"BW"} and set(gdf["year"]) == {2024}
     assert list(gdf["road_class"]) == ["L", "B", "A"]
     assert list(gdf["road_no"]) == ["L 508", "B 27", "A 81"]
-    assert list(gdf["dtv_kfz"]) == [6626, 24000, 0]
+    assert list(gdf["dtv_kfz"][:2]) == [6626, 24000]
+    assert gdf["dtv_kfz"].isna().tolist() == [False, False, True]   # "0" = nicht gezählt (#2)
+    assert gdf["dtv_sv"].isna().tolist() == [False, False, True]

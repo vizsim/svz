@@ -319,10 +319,27 @@ def to_canonical(
 
     keep = [*schema.COLUMNS, "geometry"]
     out = gpd.GeoDataFrame(out[keep], geometry="geometry", crs=f"EPSG:{schema.EPSG}")
-    # numerisch erzwingen (manche Quellen liefern Zahlen als String, z.B. BB-GML "1281.0")
-    for intcol in ("dtv_kfz", "dtv_sv"):
-        out[intcol] = pd.to_numeric(out[intcol], errors="coerce").round().astype("Int64")
-    return out
+    return normalize_counts(out)
+
+
+def normalize_counts(gdf: GeoDataFrame) -> GeoDataFrame:
+    """dtv_kfz/dtv_sv als Int64 erzwingen und Platzhalter-0 -> leer (Issue #2).
+
+    Manche Quellen liefern Zahlen als String (z.B. BB-GML "1281.0") -> numerisch. Und viele
+    kodieren „nicht gezählt" als 0: 0 Kfz/24h ist bei keiner Quelle ein Messwert (NW: 1.228
+    Abschnitte, dazu BE/BW/Köln/…; der kleinste echte Wert liegt überall weit darüber). Leer
+    zeigt die Karte als „keine Angabe" (grau) statt in der niedrigsten Klasse. SV = 0 bleibt
+    nur neben einem echten Kfz-Wert stehen (dort heißt es wirklich: kein Schwerverkehr).
+    Auch von `merge` aufgerufen, damit eine ältere interim-FGB korrekt ausgespielt wird, wenn
+    ihre Quelle gerade nicht neu gebaut werden kann.
+    """
+    import pandas as pd
+
+    for col in ("dtv_kfz", "dtv_sv"):
+        gdf[col] = pd.to_numeric(gdf[col], errors="coerce").round().astype("Int64")
+    gdf["dtv_kfz"] = gdf["dtv_kfz"].mask(gdf["dtv_kfz"].eq(0).fillna(False))
+    gdf["dtv_sv"] = gdf["dtv_sv"].mask(gdf["dtv_kfz"].isna() & gdf["dtv_sv"].eq(0).fillna(False))
+    return gdf
 
 
 # --- FlatGeobuf-Write (Null-/leere Geometrien filtern!) ---

@@ -44,5 +44,6 @@ def test_nw_normalize_picks_alltage_and_reprojects(monkeypatch) -> None:
     assert set(gdf["year"]) == {2019}
     assert list(gdf["road_class"]) == ["L", "B", "K"]
     assert list(gdf["road_no"]) == ["L593", "B54", "K1"]
-    assert list(gdf["dtv_kfz"]) == [851, 24000, 0]        # A-Variante, nicht W
+    assert list(gdf["dtv_kfz"][:2]) == [851, 24000]       # A-Variante, nicht W
+    assert gdf["dtv_kfz"].isna().tolist() == [False, False, True]   # 0 = nicht gezählt (#2)
     assert "STRNR" not in gdf.columns

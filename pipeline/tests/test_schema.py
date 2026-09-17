@@ -57,6 +57,30 @@ def test_to_canonical_level_from_sources_and_year_from_column() -> None:
     assert out["name"].isna().all()                 # optionale Spalte wird aufgefüllt
 
 
+def test_to_canonical_zero_kfz_means_no_data() -> None:
+    # Issue #2: Quellen kodieren „nicht gezählt" als 0 -> leer (Karte: grau „keine Angabe").
+    raw = gpd.GeoDataFrame(
+        {
+            "DTV": [0, 0, 4200, None],
+            "DTV_SV": [0, 194, 0, 0],
+            "geometry": [
+                LineString([(500000, 5400000 + i), (500100, 5400000 + i)]) for i in range(4)
+            ],
+        },
+        crs="EPSG:25832",
+    )
+    out = base.to_canonical(
+        raw, mapping={"DTV": "dtv_kfz", "DTV_SV": "dtv_sv"},
+        metric="DTV", year=2019, road_class="K",
+        state="NW", source="nw", license="dl-de/by-2.0",
+    )
+    schema.validate(out, where="nw")
+    assert out["dtv_kfz"].isna().tolist() == [True, True, False, True]
+    assert out["dtv_sv"].isna().tolist() == [True, False, False, True]   # Platzhalter-0 weg
+    assert out["dtv_sv"].iloc[1] == 194                                  # echter SV-Wert bleibt
+    assert out["dtv_kfz"].iloc[2] == 4200 and out["dtv_sv"].iloc[2] == 0  # SV 0 neben Kfz bleibt
+
+
 def test_validate_rejects_bad_level() -> None:
     out = base.to_canonical(
         _raw_utm(), mapping={"DTV": "dtv_kfz"},

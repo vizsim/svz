@@ -12,9 +12,9 @@ Mittel aus zwei Zählungen); `zaehldatum` = Zähltag, ausnahmslos Di–Do -> yea
 Es sind gemittelte Werktags-24h-Zählungen, keine Hochrechnung auf ein Jahresmittel ->
 metric 24h (nicht DTV/DTVw). SV = Lkw mit + Lkw ohne Anhänger (kein Bus-Layer); die
 Lkw-Layer decken nur ~410 der 530 Abschnitte ab -> sonst dtv_sv leer. `mittl_bel` = 0
-(3 Abschnitte) bleibt 0, wie geliefert. Straßenklasse aus dem Namen ("A 661", "B 40a",
-"L 3003", "K 824"), sonst G; name = str_name. Live verifiziert (Sept. 2026; bis dahin
-lieferte jedes GetFeature HTTP 500).
+(3 Abschnitte) wird wie überall zu „keine Angabe" (base.to_canonical). Straßenklasse aus
+dem Namen ("A 661", "B 40a", "L 3003", "K 824"), sonst G; name = str_name. Live verifiziert
+(Sept. 2026; bis dahin lieferte jedes GetFeature HTTP 500).
 """
 
 from __future__ import annotations

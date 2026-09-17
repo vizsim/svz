@@ -2,7 +2,7 @@
 
 Fixiert: SV = Lkw mit + Lkw ohne Anhänger über `str_nr` (Geometrie im Lkw-Layer gedreht,
 Layer decken nicht alle Abschnitte ab -> dtv_sv leer), Jahr je Feature aus `zaehldatum`,
-metric 24h, Straßenklasse aus dem Namen inkl. Buchstaben-Suffix ("B 40a"), 0 bleibt 0.
+metric 24h, Straßenklasse aus dem Namen inkl. Buchstaben-Suffix ("B 40a"), 0 Kfz -> leer.
 """
 
 from __future__ import annotations
@@ -64,4 +64,5 @@ def test_frankfurt_join_and_metric(monkeypatch) -> None:
     assert a661["dtv_sv"] == 5020 + 3729
     assert b40a["road_class"] == "B" and b40a["road_no"] == "B 40a" and b40a["year"] == 2019
     assert b40a["dtv_kfz"] == 8000 and pd.isna(b40a["dtv_sv"])           # kein Lkw-Wert -> leer
-    assert kaiser["dtv_kfz"] == 0 and kaiser["dtv_sv"] == 14 and kaiser["year"] == 2023
+    assert pd.isna(kaiser["dtv_kfz"]) and kaiser["dtv_sv"] == 14        # 0 Kfz = keine Angabe
+    assert kaiser["year"] == 2023

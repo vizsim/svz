@@ -69,6 +69,16 @@ Gemeinsamer Ausweg für all diese: der **BASt-Backbone** deckt A/B bundesweit ab
 nachgeordnete Netz (L/K) bleibt bei diesen Ländern lückenhaft, bis eine DTV-Tabelle
 (mit VNK/NNK oder Zählstellennr) auftaucht — dann Join wie bei ST/TH.
 
+## Quellen-Pflege
+
+- **BW: Quell-URL tot (Stand 17.09.2026).** `…/karten_geojsons/maps/count_car/SVZ-Zaehlstellen_231011_augmented_SVZ2024.geojson`
+  liefert 404; MobiData BW listet stattdessen eine **CSV** neueren Stands
+  (`…/vm/Karte_Strassenverkehrszaehlung_BW/SVZ-Zaehlstellen_2026-06-26_augmented_SVZ2024.csv`,
+  Datensatz `karte_strassenverkehrszaehlung`). `svz build bw` schlägt daher fehl; ausgespielt
+  wird weiter die vorhandene `interim/bw.fgb`. → Adapter auf die CSV umstellen (Koordinaten-
+  spalten + Stand prüfen). Nebenbefund: `base.fetch_geojson`/`fetch_zip` rufen kein
+  `raise_for_status()` auf – ein 404 endet als kryptischer GDAL-Fehler statt als HTTP-Fehler.
+
 ## Kommunale Daten (Ebene 3, Issue #1)
 
 Konzept + Stand: [Konzept_kommunale_daten.md](Konzept_kommunale_daten.md). Umgesetzt:
