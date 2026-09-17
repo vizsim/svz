@@ -11,7 +11,7 @@
 #   level     Herausgeber-Ebene: bund | land | kommune  (-> eigenes PMTiles je Ebene)
 #   name      Anzeigename (Panel/Popup)
 #   state     Bundesland-Kürzel (Kommunen: Land, in dem die Stadt liegt; Bund: DE)
-#   kind      zip | geojson | wfs | ogcapi | xlsx | wfs+xlsx | pdf | viewer
+#   kind      zip | geojson | csv | wfs | ogcapi | xlsx | wfs+xlsx | pdf | viewer
 #   access    Liste {label,url} für die „Zugang"-Spalte (README/Panel); url/values_url/urls
 #             bleiben die technischen Endpunkte der Adapter.
 # Adapter-Modul per Konvention: adapters/<code>.py (land/bund) bzw. adapters/kommunal/<code>.py;
@@ -166,13 +166,15 @@ sources:
     level: land
     name: "Baden-Württemberg"
     state: BW
-    kind: geojson         # direkte GeoJSON-Datei (PUNKTE), EPSG:4326
-    url: "https://mobidata-bw.de/karten_geojsons/maps/count_car/SVZ-Zaehlstellen_231011_augmented_SVZ2024.geojson"
-    year: 2024            # DTV2024/DTVSV/klasse/nummer/svznr (Adapter: bw.py)
+    kind: csv             # CSV mit Koordinaten gpsx1/gpsy1 (PUNKTE), EPSG:4326; bis 09/2026 GeoJSON
+    url: "https://mobidata-bw.de/vm/Karte_Strassenverkehrszaehlung_BW/SVZ-Zaehlstellen_2026-06-26_augmented_SVZ2024.csv"
+    portal: "https://mobidata-bw.de/dataset/karte_strassenverkehrszaehlung"
+    year: 2024            # DTV2024/DTVSV/klasse/nummer/svznr (Adapter: bw.py); Standdatum im Dateinamen
     license: "dl-de/by-2.0"  # mobidata-bw CKAN license_id
     metric: DTV
     access:
-      - { label: GeoJSON, url: "https://mobidata-bw.de/karten_geojsons/maps/count_car/SVZ-Zaehlstellen_231011_augmented_SVZ2024.geojson" }
+      - { label: CSV, url: "https://mobidata-bw.de/vm/Karte_Strassenverkehrszaehlung_BW/SVZ-Zaehlstellen_2026-06-26_augmented_SVZ2024.csv" }
+      - { label: Portal, url: "https://mobidata-bw.de/dataset/karte_strassenverkehrszaehlung" }
 
   sl:
     status: live

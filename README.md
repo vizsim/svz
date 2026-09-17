@@ -3,7 +3,7 @@
 # Verkehrsmengenkarte – SVZ der Bundesländer (+ kommunale Zählungen)
 
 Sammelt die **Straßenverkehrszählungs-/Verkehrsmengendaten (DTV)** der deutschen
-Bundesländer aus ihren heterogenen Quellen (WFS / OGC API / ATOM-ZIP / GeoJSON /
+Bundesländer aus ihren heterogenen Quellen (WFS / OGC API / ATOM-ZIP / GeoJSON / CSV /
 Excel), bringt sie in **ein kanonisches Schema**, mergt sie und tilet sie zu **einer
 `svz_de.pmtiles`**, die ein **MapLibre-Viewer** ([index.html](index.html)) auf
 OpenFreeMap-Positron rendert; den Autobahn-/Bundesstraßen-Backbone liefert die BASt.
@@ -12,7 +12,7 @@ einzelner Städte auf: das sind **keine SVZ-Daten**, sondern eigene Erhebungen d
 Kommunen (s. [Kommunale Verkehrszählungen](#kommunale-verkehrszählungen-keine-svz)).
 Pipeline + CLI: siehe [pipeline/README.md](pipeline/README.md).
 
-**Stand: SVZ 11 Länder + BASt-Backbone (A+B) · 66.330 Segmente/Zählstellen** (Linien +
+**Stand: SVZ 11 Länder + BASt-Backbone (A+B) · 66.339 Segmente/Zählstellen** (Linien +
 Punkte; Länder in `svz_de.pmtiles`, BASt separat schaltbar in `svz_bast.pmtiles`) **·
 dazu kommunale Zählungen aus 8 Kommunen (Köln, Düsseldorf, Frankfurt am Main, Ravensburg,
 Weingarten, Berg, Baienfurt, Baindt) · 5.276 Kanten/Zählstellen** in `svz_kommunal.pmtiles`.
@@ -56,7 +56,7 @@ Legende Status: ✅ live (implementiert) · ⛔ blockiert
 
 | Land | Status | Zugang (URL) | Geom | Jahr | Metrik | SV | Lizenz | Features | Anmerkung |
 |---|---|---|---|---|---|---|---|--:|---|
-| **Baden-Württemberg** (BW) | ✅ | [GeoJSON](https://mobidata-bw.de/karten_geojsons/maps/count_car/SVZ-Zaehlstellen_231011_augmented_SVZ2024.geojson) | Punkte | 2024 | DTV | abs | dl-de/by-2.0 | 5.629 | Zählstellen als **Punkte** (MobiData BW, `DTV2024`). |
+| **Baden-Württemberg** (BW) | ✅ | [CSV](https://mobidata-bw.de/vm/Karte_Strassenverkehrszaehlung_BW/SVZ-Zaehlstellen_2026-06-26_augmented_SVZ2024.csv) · [Portal](https://mobidata-bw.de/dataset/karte_strassenverkehrszaehlung) | Punkte | 2024 | DTV | abs | dl-de/by-2.0 | 5.638 | Zählstellen als **Punkte** (MobiData BW, `DTV2024`, Koordinaten `gpsx1`/`gpsy1`). Bis 09/2026 als GeoJSON veröffentlicht (jetzt 404); die CSV mit Stand 2026-06-26 trägt dieselben Werte. Standdatum steckt im Dateinamen → bei 404 im Portal-Datensatz nach der neuen Ressource schauen. |
 | **Bayern** (BY) | ✅ | [WFS](https://gisportal-stmb.bayern.de/server/services/WFS/BAYSIS_Verkehrsdaten/MapServer/WFSServer) | Linien | 2021 | DTV | abs | CC-BY-4.0 | 9.431 | BAYSIS (ArcGIS-WFS, GEOJSON); Staatsstr. „St" → L. |
 | **Berlin** (BE) | ✅ | [WFS](https://gdi.berlin.de/services/wfs/verkehrsmengen_2023) | Linien | 2023 | **DTVw** | abs | dl-de/zero-2.0 | 8.337 | Nur **Werktage** (DTVw); Kfz- + Lkw-Layer (Lkw → SV gejoint). |
 | **Brandenburg** (BB) | ✅ | [WFS](https://inspire.brandenburg.de/services/zaehlstellen_wfs) | Linien | 2021 | DTV | abs · % | dl-de/by-2.0 | 2.315 | Nativer `verkehrsstaerke_2021` (Geometrie **und** Werte in einem); nur GML, EPSG:25833. |

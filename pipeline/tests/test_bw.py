@@ -1,4 +1,4 @@
-"""Golden-Test BW (Punkte): GeoJSON-Zählstellen -> kanonisches Schema."""
+"""Golden-Test BW (Punkte): CSV-Zählstellen -> kanonisches Schema."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ from svzkarte import schema
 from svzkarte.adapters import base, bw
 
 
-def _fake_geojson(*_a, **_k) -> gpd.GeoDataFrame:
+def _fake_csv_points(*_a, **_k) -> gpd.GeoDataFrame:
     return gpd.GeoDataFrame(
         {
             "klasse": ["L", "B", "A"],
@@ -24,7 +24,7 @@ def _fake_geojson(*_a, **_k) -> gpd.GeoDataFrame:
 
 
 def test_bw_points_normalize(monkeypatch) -> None:
-    monkeypatch.setattr(base, "fetch_geojson", _fake_geojson)
+    monkeypatch.setattr(base, "fetch_csv_points", _fake_csv_points)
     gdf = bw.normalize()
 
     schema.validate(gdf, where="bw")

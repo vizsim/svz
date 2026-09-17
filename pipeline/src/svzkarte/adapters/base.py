@@ -126,10 +126,11 @@ def fetch_atom(feed_url: str, *, match: str | None = None) -> GeoDataFrame:
         cand = [h for h in cand if match.lower() in h.lower()]
     if not cand:
         raise ValueError(f"Atom-Feed {feed_url}: kein Download-Link (match={match!r})")
-    data = requests.get(cand[0], headers=_UA, timeout=_TIMEOUT).content
+    d = requests.get(cand[0], headers=_UA, timeout=_TIMEOUT)
+    d.raise_for_status()
     if cand[0].lower().endswith(".zip"):
-        return _read_zip_vector(data)
-    return gpd.read_file(io.BytesIO(data))
+        return _read_zip_vector(d.content)
+    return gpd.read_file(io.BytesIO(d.content))
 
 
 def fetch_zip(
@@ -146,16 +147,37 @@ def fetch_zip(
     `headers` ergänzt/überschreibt den User-Agent (Mobilithek liefert ohne Browser-UA
     eine HTML-Seite statt der Datei).
     """
-    data = requests.get(url, headers={**_UA, **(headers or {})}, timeout=_TIMEOUT).content
-    return _read_zip_vector(data, layer=layer, member=member)
+    r = requests.get(url, headers={**_UA, **(headers or {})}, timeout=_TIMEOUT)
+    r.raise_for_status()
+    return _read_zip_vector(r.content, layer=layer, member=member)
 
 
 def fetch_geojson(url: str) -> GeoDataFrame:
     """Lädt eine direkte GeoJSON-Datei (z.B. BW-Zählstellen) als GeoDataFrame."""
     import geopandas as gpd
 
-    data = requests.get(url, headers=_UA, timeout=_TIMEOUT).content
-    return gpd.read_file(io.BytesIO(data))
+    r = requests.get(url, headers=_UA, timeout=_TIMEOUT)
+    r.raise_for_status()      # sonst landet eine 404-Seite als kryptischer GDAL-Fehler
+    return gpd.read_file(io.BytesIO(r.content))
+
+
+def fetch_csv_points(url: str, *, x: str, y: str, crs: int = 4326) -> GeoDataFrame:
+    """Lädt eine CSV mit Koordinatenspalten `x`/`y` (z.B. BW-Zählstellen) als Punkt-GeoDataFrame.
+
+    Alle Spalten bleiben Strings (Zählstellennummern mit führenden Nullen!); Zahlen erzwingt
+    `to_canonical`. Zeilen ohne gültige Koordinaten fallen weg.
+    """
+    import geopandas as gpd
+    import pandas as pd
+
+    r = requests.get(url, headers=_UA, timeout=_TIMEOUT)
+    r.raise_for_status()
+    df = pd.read_csv(io.BytesIO(r.content), dtype=str)
+    xs, ys = pd.to_numeric(df[x], errors="coerce"), pd.to_numeric(df[y], errors="coerce")
+    ok = xs.notna() & ys.notna()
+    return gpd.GeoDataFrame(
+        df[ok], geometry=gpd.points_from_xy(xs[ok], ys[ok]), crs=f"EPSG:{crs}"
+    )
 
 
 def _read_zip_vector(
@@ -224,7 +246,9 @@ def read_excel_zip(url: str, *, sheet: int | str = 0) -> pd.DataFrame:
     """Lädt ein (ggf. gezipptes) XLSX und gibt das Blatt als DataFrame zurück."""
     import pandas as pd
 
-    data = requests.get(url, headers=_UA, timeout=_TIMEOUT).content
+    r = requests.get(url, headers=_UA, timeout=_TIMEOUT)
+    r.raise_for_status()
+    data = r.content
     if url.lower().endswith(".zip"):
         with zipfile.ZipFile(io.BytesIO(data)) as zf:
             name = next(n for n in zf.namelist() if n.lower().endswith((".xlsx", ".xls")))

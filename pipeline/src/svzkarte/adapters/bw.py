@@ -1,8 +1,13 @@
 """Baden-Württemberg: SVZ 2024, Zählstellen als PUNKTE (MobiData BW).
 
-Live verifiziert (Juni 2026): direkte GeoJSON-Datei (5629 Punkte, EPSG:4326) mit
-den augmentierten SVZ-2024-Werten. Felder: DTV2024 (DTV Kfz), DTVSV, klasse
-(A/B/L/K), nummer (Straßennummer), svznr (Zählstellennummer). DTV = alle Tage.
+Live verifiziert (Sept. 2026): „Grunddaten hinter der SVZ-Karte BW" als CSV (5638 Zeilen,
+Koordinaten gpsx1/gpsy1 in EPSG:4326) mit den augmentierten SVZ-2024-Werten. Felder:
+DTV2024 (DTV Kfz), DTVSV, klasse (A/B/L/K), nummer (Straßennummer), svznr
+(Zählstellennummer). DTV = alle Tage. Bis 09/2026 kam dieselbe Tabelle als GeoJSON
+(`karten_geojsons/…_231011_…`, jetzt 404); die CSV (Stand 2026-06-26) trägt für alle 5597
+gemeinsamen Zählstellen identische Werte, dazu +41/−32 Zählstellen und 112 korrigierte Lagen.
+Der Dateiname enthält das Standdatum -> bei 404 im CKAN-Datensatz
+`karte_strassenverkehrszaehlung` nach der neuen Ressource schauen.
 
 Punkt-Quelle -> landet im merge in svz_points.fgb (eigener Frontend-Kreislayer).
 """
@@ -38,9 +43,9 @@ def _cfg() -> dict:
 
 
 def normalize() -> GeoDataFrame:
-    """Zählstellen-GeoJSON (Punkte, EPSG:4326) -> kanonisches Schema."""
+    """Zählstellen-CSV (Punkte aus gpsx1/gpsy1, EPSG:4326) -> kanonisches Schema."""
     cfg = _cfg()
-    g = base.fetch_geojson(cfg["url"]).copy()
+    g = base.fetch_csv_points(cfg["url"], x="gpsx1", y="gpsy1").copy()
     # road_no aus Klasse + Nummer, z.B. "L 508".
     g["road_no"] = (
         g["klasse"].astype(str).str.strip() + " " + g["nummer"].astype(str).str.strip()

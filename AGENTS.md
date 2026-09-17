@@ -60,7 +60,8 @@ alle, die neue Quellen anschließen – Menschen wie Agenten. Ergänzt
 | Shapefile-ZIP (INSPIRE/Atom) | NI, NW, SN | `fetch_zip` / `fetch_atom` | ganzes ZIP an GDAL geben (Sidecars) |
 | Shapefile-ZIP mit mehreren Layern | Köln (VISUM link/node) | `fetch_zip(layer=…)` | DBF kürzt Spaltennamen (`R_K_2016~2`) → Regex |
 | ZIP mit mehreren GeoJSONs | Mobilithek-Pakete (z.B. DiSTILL Lausitz) | `fetch_zip(member=…, headers=…)` | `zip://…!datei.json`; Browser-UA nötig |
-| GeoJSON direkt | BW, Düsseldorf 2019 | `fetch_geojson` | – |
+| GeoJSON direkt | Düsseldorf 2019 | `fetch_geojson` | – |
+| CSV mit Koordinaten | BW (`gpsx1`/`gpsy1`) | `fetch_csv_points(x=, y=)` | alles als String lesen (Zählstellennummern!); Standdatum im Dateinamen → URL stirbt beim nächsten Update |
 | Excel mit Koordinaten | BASt, MobiData-Kommunen | `read_excel_zip(sheet=)` + `points_from_xy` | Zahlen als Strings/Leerstrings → `to_numeric(errors="coerce")` |
 | Excel/CSV ohne Geometrie | ST-Werte, Stuttgart-Kordon | Join auf Netz; ohne Schlüssel unbrauchbar | Stuttgart: nur Messpunkt-Kategorie, keine Koordinaten |
 | Nur PDF/Viewer/WMS | HB, HE, MV, Münster, Potsdam, Dortmund (Werte auf Anfrage) | – | `status: blocked`, Sackgasse dokumentieren |

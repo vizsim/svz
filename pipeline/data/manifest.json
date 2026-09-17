@@ -240,17 +240,22 @@
       "level": "land",
       "state": "BW",
       "status": "live",
-      "kind": "geojson",
+      "kind": "csv",
       "year": 2024,
       "metric": "DTV",
       "license": "dl-de/by-2.0",
+      "portal": "https://mobidata-bw.de/dataset/karte_strassenverkehrszaehlung",
       "access": [
         {
-          "label": "GeoJSON",
-          "url": "https://mobidata-bw.de/karten_geojsons/maps/count_car/SVZ-Zaehlstellen_231011_augmented_SVZ2024.geojson"
+          "label": "CSV",
+          "url": "https://mobidata-bw.de/vm/Karte_Strassenverkehrszaehlung_BW/SVZ-Zaehlstellen_2026-06-26_augmented_SVZ2024.csv"
+        },
+        {
+          "label": "Portal",
+          "url": "https://mobidata-bw.de/dataset/karte_strassenverkehrszaehlung"
         }
       ],
-      "n": 5629,
+      "n": 5638,
       "bbox": [
         7.5238,
         47.5453,
