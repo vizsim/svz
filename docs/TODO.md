@@ -19,6 +19,13 @@
 veröffentlichen mehrere Landes-SVZ-Datensätze **nur das nachgeordnete Netz**
 (B/L/K + innerstädtische Hauptstraßen):
 - **NRW** (`Verkehrswerte2019HR`) enthält ausschließlich B/L/K – Autobahnen fehlen ganz.
+  Geprüft 09/2026: `…2019HR` ist keine Zählung, sondern die Fortschreibung der SVZ 2015 auf
+  2019. Die echte SVZ 2021 liegt im selben opengeodata-Ordner als `Verkehrswerte_EPSG25832_Shape.zip`
+  (gleiches Schema, dl-de/by-2.0; Median −9,5 % ggü. 2019HR). **Bewusst nicht umgestellt** –
+  Wechsel erst mit der SVZ 2025. Die Datei ohne Jahr ist rollend (kein Jahresfeld) und dürfte
+  dann die 2025er-Werte tragen → URL + `year` in sources.yaml, vorher den Stand in
+  `datenbeschreibung_strassennetz.pdf` prüfen. Die Straßen.NRW-Excel braucht es dafür nicht
+  (keine Lizenzangabe; ihre A-Zählstellen sind wertgleich mit BASt).
 - **Berlin** liefert das städtische Hauptstraßennetz; nur ~10 A-Schnipsel (A100 etc.).
 - **BY/NI/BB/HH/BW** führen BAB historisch in ihren SVZ mit → daher die Inkonsistenz.
 
