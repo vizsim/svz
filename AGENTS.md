@@ -21,6 +21,9 @@ alle, die neue Quellen anschließen – Menschen wie Agenten. Ergänzt
 - **Metriken**: `DTV` (alle Tage), `DTVw` (werktags), `24h` (Einzelzählung an einem
   Werktag – kein Mittel). Eine 16h-Zählung, die die Stadt selbst auf 24h hochrechnet und
   „DTVa" nennt (Düsseldorf), ist `DTV`; eine einzelne Di/Do-Zählung (Ravensburg) ist `24h`.
+  Auch ein **Mittel weniger Werktagszählungen ohne Hochrechnung aufs Jahr** (Frankfurt:
+  „Mittelwerte 2019–2023", Zähltage nur Di–Do) bleibt `24h` – die Wochentage von
+  `zaehldatum` auszählen verrät, was man vor sich hat.
 
 ## 2. Wo man Quellen findet (Reihenfolge, die sich bewährt hat)
 
@@ -73,7 +76,9 @@ alle, die neue Quellen anschließen – Menschen wie Agenten. Ergänzt
 - **Richtungswerte** (Köln `K_<Jahr>` / `R_K_<Jahr>`): jüngstes Jahr mit beiden Richtungen
   summieren, sonst jüngstes Jahr mit einer; Kanten ohne Werte fallen weg.
 - **Mehrere Layer je Fahrzeugart** (Düsseldorf): UUIDs je Layer verschieden, Geometrie
-  identisch → Join über `geometry.wkb`; SV = Lkw oA + Lkw mA + Bus.
+  identisch → Join über `geometry.wkb`; SV = Lkw oA + Lkw mA + Bus. Gibt es eine gemeinsame
+  Abschnittsnummer (Frankfurt `str_nr`), darüber joinen – dort ist die Digitalisierrichtung
+  zwischen den Layern teils gedreht, ein WKB-Join würde diese Abschnitte verlieren.
 - **Dopplung prüfen, bevor man baut**: `station_id`-Mengen und DTV-Werte eines neuen
   Datensatzes gegen die schon integrierten Quellen im selben Gebiet vergleichen
   (`merge` auf `station_id`, Anteil identischer Werte). Identisch → nicht anschließen.
@@ -98,7 +103,10 @@ alle, die neue Quellen anschließen – Menschen wie Agenten. Ergänzt
 
 ## 6. Bekannte Sackgassen (nicht nochmal suchen)
 
-- **Frankfurt** WFS `Verkehrsmengen`: Capabilities ok, jedes GetFeature → 500 (Stand 09/2026).
+- **`research`-Dienste wiederbeleben sich**: Frankfurts WFS lieferte monatelang auf jedes
+  GetFeature 500 und lief im Sept. 2026 plötzlich → vor jedem Sweep die `research`-Einträge
+  in `sources.yaml` kurz neu testen. Portale hinter Bot-Schutz (opendata.hessen.de: Anubis)
+  nicht aushebeln – Lizenz/Beschreibung stehen gespiegelt in der GovData-CKAN-API.
 - **Münster**: ZIP mit einer PDF/XLS je Zählung (Spitzenstunden), kein Tageswert je Stelle.
 - **Potsdam**: nur Knotenstandorte + PDF-ZIP je Knoten. **Dortmund**: nur Zählstellenplan,
   Werte kostenpflichtig auf Anfrage. **Stuttgart**: Kordon-Summen ohne Koordinaten.

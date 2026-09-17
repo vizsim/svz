@@ -60,7 +60,7 @@ tippecanoe gibt `svz tiles` das Kommando nur aus (kein Abbruch).
 ## Status
 
 Live: **11 Länder** (BE, NI, BY, BB, HH, NW, TH, SN, ST als Linien; BW, SL als Punkte),
-**BASt-Backbone** (A+B, Punkte), **Kommunen: Köln, Düsseldorf** (Linien) und
-**Ravensburg, Weingarten, Berg, Baienfurt, Baindt** (Punkte, 24h, generischer
-MobiData-BW-Adapter). Offen: RP (OGC API defekt), Frankfurt (WFS 500), HB/HE/MV/SH
+**BASt-Backbone** (A+B, Punkte), **Kommunen: Köln, Düsseldorf, Frankfurt am Main**
+(Linien; Frankfurt als 24h-Mittel) und **Ravensburg, Weingarten, Berg, Baienfurt, Baindt**
+(Punkte, 24h, generischer MobiData-BW-Adapter). Offen: RP (OGC API defekt), HB/HE/MV/SH
 (kein maschinenlesbarer DTV) – Details in [../docs/TODO.md](../docs/TODO.md).
