@@ -327,6 +327,23 @@ sources:
       - { label: Excel, url: "https://mobidata-bw.de/daten/portal/Baindt_Zaehl/Verkehrszaehlungen-Gemeinde-Baindt.xlsx" }
       - { label: Portal, url: "https://mobidata-bw.de/dataset/zaehldaten-gemeinde-baindt" }
 
+  # --- Hessen: erste (und bisher einzige) maschinenlesbare Quelle im Land (he = blocked).
+  frankfurt:
+    status: live
+    level: kommune
+    name: "Frankfurt am Main"
+    state: HE
+    ags: "06412000"
+    kind: wfs             # GeoServer-WFS 2.0.0 (JSON), je Fahrzeugart ein Layer; Join über str_nr
+    url: "https://geowebdienste.frankfurt.de/Verkehrsmengen"
+    portal: "https://opendata.hessen.de/dataset/wfs-verkehrsmengen-frankfurt-am-main"
+    year: 2023            # Mittelwerte 2019–2023; year je Feature aus zaehldatum (Adapter: frankfurt.py)
+    license: "dl-de/by-2.0"    # lt. GovData/Open Data Hessen (dl-by-de/2.0), Straßenverkehrsamt Frankfurt
+    metric: "24h"         # gemittelte Werktags-24h-Zählungen (Zähltage nur Di–Do), kein Jahresmittel
+    access:
+      - { label: WFS, url: "https://geowebdienste.frankfurt.de/Verkehrsmengen?service=WFS&request=GetCapabilities" }
+      - { label: Portal, url: "https://opendata.hessen.de/dataset/wfs-verkehrsmengen-frankfurt-am-main" }
+
   # Geprüft und verworfen (kein Mehrwert): „Straßenverkehrszählungsdaten der Lausitz" (IPG/
   # DiSTILL, Mobilithek 983406200238284800) legt die SVZ 2021 von BB+SN auf OSM-Ways — alle
   # 371 Zählstellen sind mit identischem DTV bereits in bb/sn enthalten (nur Geometrie/Spuren neu).
@@ -345,20 +362,6 @@ sources:
     # Stand 2026: liefert serverseitig "Wfs object could not be created from db!" -> warten.
     year: 2021
     license: "dl-de/by-2.0"
-    metric: DTV
-
-  frankfurt:
-    status: research      # WFS existiert (GetCapabilities/DescribeFeatureType ok), GetFeature -> HTTP 500
-    level: kommune
-    name: "Frankfurt am Main"
-    state: HE
-    kind: wfs             # WFS 1.1.0, FeatureTypes opendata_zaehlstellen:zs_kfz24 / zs_lkw24 /
-    url: "https://geowebdienste.frankfurt.de/Verkehrsmengen"   # zs_lkw_ohneanhaenger24 / zs_rad24
-    # Felder: mittl_bel (Mittel 2019–2023), str_name, str_nr, kno_von/kno_nach, zp_nr; Linien.
-    # Stand 09/2026: jede GetFeature-Variante (1.0/1.1/2.0, GET/POST, json/gml) -> 500-Seite
-    # des Geoportals. Wertvoll, weil Hessen sonst keine maschinenlesbaren DTV liefert -> warten.
-    year: 2023
-    license: "unbekannt"  # Metadatensatz (geodatenkatalog.frankfurt.de ff2e21db-…) liefert 404
     metric: DTV
 
   # ============================================================================

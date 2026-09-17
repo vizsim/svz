@@ -211,7 +211,7 @@ Suchbegriffe: [AGENTS.md](../AGENTS.md)). Ergebnis:
 | Düsseldorf | NW | ✅ integriert (GeoServer-WFS, DTVa 2024, SV über Geometrie-Join) |
 | Lausitz (DiSTILL) | BB+SN | ⛔ verworfen: SVZ 2021 BB+SN auf OSM-Ways, alle 371 Zählstellen mit identischem DTV schon in bb/sn |
 | Weingarten, Berg, Baienfurt, Baindt | BW | ✅ integriert (MobiData-BW-Format, generischer Adapter) |
-| Frankfurt am Main | HE | 🔎 `research`: WFS vorhanden, GetFeature → 500; erste HE-Quelle, sobald der Dienst läuft |
+| Frankfurt am Main | HE | ✅ integriert (GeoServer-WFS, Mittel der Werktagszählungen 2019–2023 → `24h`, SV über `str_nr`-Join); erste HE-Quelle – der Dienst lieferte bis 09/2026 nur HTTP 500 |
 | Münster | NW | ⛔ nur PDF/XLS je Einzelzählung (Spitzenstunden), Zählstellen-CSV ohne Werte |
 | Potsdam | BB | ⛔ nur Knotenstandorte, Zählergebnisse als PDF-ZIP je Knoten |
 | Dortmund | NW | ⛔ nur Zählstellenplan (Standorte 1998–2024), Werte kostenpflichtig auf Anfrage |
@@ -221,4 +221,4 @@ Suchbegriffe: [AGENTS.md](../AGENTS.md)). Ergebnis:
 | Mannheim, Leipzig, Heidelberg, Aachen | – | ⛔ nur Rad-Zählstellen |
 | Kiel, Rostock, Bremen, Hannover, Bonn, Wuppertal, Bielefeld, München | – | keine maschinenlesbaren Kfz-Zählungen gefunden (oder Portal-API nicht erreichbar) |
 
-Offen bleibt damit vor allem **Hessen** (Frankfurt) und eine Stadt in **Sachsen** (Dresden).
+Offen bleibt damit vor allem eine Stadt in **Sachsen** (Dresden); **Hessen** ist mit Frankfurt erstmals vertreten.

@@ -7,7 +7,8 @@ Frontend separat schaltbares PMTiles — daher fünf mögliche Ausgaben:
   Kommunen (level=kommune)  kommunal_lines.fgb / kommunal_points.fgb -> svz_kommunal.pmtiles
 
 Ältere interim-FGB (vor `level`/`name`) werden beim Lesen nachgerüstet — `level` aus
-sources.yaml, `name` leer — damit kein voller Rebuild aller Länder nötig ist.
+sources.yaml, `name` leer, Platzhalter-0 -> leer — damit kein voller Rebuild aller Länder
+nötig ist (und eine Quelle, die gerade nicht liefert, trotzdem korrekt ausgespielt wird).
 """
 
 from __future__ import annotations
@@ -30,12 +31,12 @@ _PREFIX = {"land": "", "kommune": "kommunal_"}
 
 
 def _backfill(gdf):
-    """Fehlende Schema-Spalten älterer Builds ergänzen (level aus sources.yaml, name=None)."""
+    """Ältere Builds nachrüsten: fehlende Spalten (level aus sources.yaml, name=None), 0 -> leer."""
     if "level" not in gdf.columns:
         gdf["level"] = base.source_level(str(gdf["source"].iloc[0]))
     if "name" not in gdf.columns:
         gdf["name"] = None
-    return gdf
+    return base.normalize_counts(gdf)
 
 
 def _group(gdf) -> str:

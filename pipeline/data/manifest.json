@@ -5,7 +5,7 @@
     "file": "svz/svz_de.pmtiles",
     "present": true,
     "vintage": "2024",
-    "built": "2026-09-16"
+    "built": "2026-09-17"
   },
   "svz_bast": {
     "label": "BASt-Backbone (Bundesfernstraßen A+B)",
@@ -13,7 +13,7 @@
     "file": "svz/svz_bast.pmtiles",
     "present": true,
     "vintage": "2021",
-    "built": "2026-09-16"
+    "built": "2026-09-17"
   },
   "svz_kommunal": {
     "label": "Kommunale Verkehrszählungen",
@@ -21,7 +21,7 @@
     "file": "svz/svz_kommunal.pmtiles",
     "present": true,
     "vintage": "2026",
-    "built": "2026-09-16"
+    "built": "2026-09-17"
   },
   "_sources": {
     "by": {
@@ -504,6 +504,34 @@
         47.8417
       ]
     },
+    "frankfurt": {
+      "name": "Frankfurt am Main",
+      "level": "kommune",
+      "state": "HE",
+      "status": "live",
+      "kind": "wfs",
+      "year": 2023,
+      "metric": "24h",
+      "license": "dl-de/by-2.0",
+      "portal": "https://opendata.hessen.de/dataset/wfs-verkehrsmengen-frankfurt-am-main",
+      "access": [
+        {
+          "label": "WFS",
+          "url": "https://geowebdienste.frankfurt.de/Verkehrsmengen?service=WFS&request=GetCapabilities"
+        },
+        {
+          "label": "Portal",
+          "url": "https://opendata.hessen.de/dataset/wfs-verkehrsmengen-frankfurt-am-main"
+        }
+      ],
+      "n": 530,
+      "bbox": [
+        8.4855,
+        50.0591,
+        8.7825,
+        50.2135
+      ]
+    },
     "rp": {
       "name": "Rheinland-Pfalz",
       "level": "land",
@@ -513,16 +541,6 @@
       "year": 2021,
       "metric": "DTV",
       "license": "dl-de/by-2.0"
-    },
-    "frankfurt": {
-      "name": "Frankfurt am Main",
-      "level": "kommune",
-      "state": "HE",
-      "status": "research",
-      "kind": "wfs",
-      "year": 2023,
-      "metric": "DTV",
-      "license": "unbekannt"
     },
     "hb": {
       "name": "Bremen",

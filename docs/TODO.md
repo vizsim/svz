@@ -69,13 +69,25 @@ Gemeinsamer Ausweg für all diese: der **BASt-Backbone** deckt A/B bundesweit ab
 nachgeordnete Netz (L/K) bleibt bei diesen Ländern lückenhaft, bis eine DTV-Tabelle
 (mit VNK/NNK oder Zählstellennr) auftaucht — dann Join wie bei ST/TH.
 
+## Quellen-Pflege
+
+- **BW: Quell-URL tot (Stand 17.09.2026).** `…/karten_geojsons/maps/count_car/SVZ-Zaehlstellen_231011_augmented_SVZ2024.geojson`
+  liefert 404; MobiData BW listet stattdessen eine **CSV** neueren Stands
+  (`…/vm/Karte_Strassenverkehrszaehlung_BW/SVZ-Zaehlstellen_2026-06-26_augmented_SVZ2024.csv`,
+  Datensatz `karte_strassenverkehrszaehlung`). `svz build bw` schlägt daher fehl; ausgespielt
+  wird weiter die vorhandene `interim/bw.fgb`. → Adapter auf die CSV umstellen (Koordinaten-
+  spalten + Stand prüfen). Nebenbefund: `base.fetch_geojson`/`fetch_zip` rufen kein
+  `raise_for_status()` auf – ein 404 endet als kryptischer GDAL-Fehler statt als HTTP-Fehler.
+
 ## Kommunale Daten (Ebene 3, Issue #1)
 
 Konzept + Stand: [Konzept_kommunale_daten.md](Konzept_kommunale_daten.md). Umgesetzt:
-Köln, Düsseldorf (Linien), Ravensburg, Weingarten, Berg, Baienfurt, Baindt (Punkte,
-24h) in `svz_kommunal.pmtiles`; Panel nach Ebenen gruppiert, Hinzoomen, Übersichts-Marker.
+Köln, Düsseldorf, Frankfurt am Main (Linien), Ravensburg, Weingarten, Berg, Baienfurt,
+Baindt (Punkte, 24h) in `svz_kommunal.pmtiles`; Panel nach Ebenen gruppiert, Hinzoomen, Übersichts-Marker.
 Lausitz (DiSTILL) geprüft und verworfen (identisch mit bb/sn). Offen:
-- **Frankfurt** (HE): WFS liefert 500 → regelmäßig prüfen (`status: research`).
+- **Frankfurt** (HE): ISO-Metadatensatz (geodatenkatalog.frankfurt.de `ff2e21db-…`) liefert
+  weiter 404 → Definition von `mittl_bel` (Anzahl Zählungen je Abschnitt, Bus im Kfz-Wert?)
+  dort nachlesen, sobald erreichbar. Rad-Layer `zs_rad24` wartet auf die Rad/Fuß-Spalten.
 - **Rad/Fuß** aus den MobiData-Excels (optionale Spalten `dtv_rad`/`dtv_fuss` + Legenden-Modus)
   – vom Nutzer vorerst zurückgestellt.
 - **Eigener Stil für `metric=24h`** (Einzelzählung ≠ DTV), z.B. gestrichelt.
